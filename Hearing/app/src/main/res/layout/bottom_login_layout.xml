@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center|top"
+    android:paddingTop="@dimen/_20sdp"
+    android:paddingBottom="@dimen/_24sdp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/get_start_text"
+        android:textStyle="bold"
+        android:textSize="@dimen/_12ssp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginStart="@dimen/_52sdp"
+        android:layout_marginEnd="@dimen/_52sdp"
+        android:background="@color/light_gray"
+        android:layout_marginTop="@dimen/_4sdp"/>
+
+    <ImageButton
+        android:id="@+id/kakao_login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_24sdp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/kakao_login_medium_wide"/>
+
+</LinearLayout>

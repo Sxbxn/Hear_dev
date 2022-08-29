@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import com.kyonggi.hearing.MainActivity
+import com.kyonggi.hearing.presentation.main.MainActivity
 import com.kyonggi.hearing.databinding.ActivitySplashBinding
 
 @SuppressLint("CustomSplashScreen")
