@@ -10,4 +10,6 @@
     <!--Custom color resource-->
     <color name="background_blue">#2D8CFF</color>
     <color name="light_gray">#DED9D9</color>
+    <color name="medium_gray">#C4C4C4</color>
+    <color name="dark_gray">#9F9E9E</color>
 </resources>
