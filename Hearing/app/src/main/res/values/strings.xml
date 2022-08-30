@@ -9,4 +9,7 @@
     <string name="options">Options</string>
     <string name="hearing_audio">Hearing Audio:</string>
     <string name="my_video">My Video:</string>
+    <string name="meeting_id">Meeting ID</string>
+    <string name="edit">Edit</string>
+    <string name="invite_people">Invite People</string>
 </resources>
