@@ -3,4 +3,10 @@
     <string name="get_start_text">시작하기</string>
     <string name="join_hearing">Join Hearing</string>
     <string name="sign_in">Sign In</string>
+    <string name="meeting_text_hint">Meeting ID / Link Name</string>
+    <string name="name_text_hint">Name</string>
+    <string name="name">Name:</string>
+    <string name="options">Options</string>
+    <string name="hearing_audio">Hearing Audio:</string>
+    <string name="my_video">My Video:</string>
 </resources>

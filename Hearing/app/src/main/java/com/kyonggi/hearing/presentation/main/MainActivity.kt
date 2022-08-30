@@ -1,9 +1,11 @@
 package com.kyonggi.hearing.presentation.main
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.kyonggi.hearing.R
 import com.kyonggi.hearing.databinding.ActivityMainBinding
+import com.kyonggi.hearing.presentation.join.JoinActivity
 import com.kyonggi.hearing.presentation.login.SignInBottomSheetFragment
 import com.kyonggi.hearing.presentation.main.info.Info
 import com.kyonggi.hearing.presentation.main.info.InfoAdapter
@@ -23,8 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         // 테스트 코드
         binding.btnJoin.setOnClickListener {
-            val test = SignInBottomSheetFragment()
-            test.show(supportFragmentManager, test.tag)
+            startActivity(Intent(this, JoinActivity::class.java))
         }
         // 테스트 코드
         binding.btnSignIn.setOnClickListener {
