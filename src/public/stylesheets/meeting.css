@@ -1,0 +1,25 @@
+.inner {
+  height: 100%;
+}
+
+.inner .main {
+  height: 79%;
+  display: flex;
+  flex-direction: row;
+}
+
+.inner .bottom_bar {
+  height: 19%;
+  display: flex;
+}
+
+.main .vedio {
+  width: 69%;
+  height: 100%;
+  border: 1px solid red;
+}
+.main .chatting {
+  width: 29%;
+  height: 100%;
+  border: 1px solid blue;
+}
