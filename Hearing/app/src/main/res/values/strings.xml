@@ -1,15 +1,15 @@
 <resources>
     <string name="app_name">Hearing</string>
     <string name="get_start_text">시작하기</string>
-    <string name="join_hearing">Join Hearing</string>
-    <string name="sign_in">Sign In</string>
-    <string name="meeting_text_hint">Meeting ID / Link Name</string>
-    <string name="name_text_hint">Name</string>
-    <string name="name">Name:</string>
-    <string name="options">Options</string>
-    <string name="hearing_audio">Hearing Audio:</string>
-    <string name="my_video">My Video:</string>
-    <string name="meeting_id">Meeting ID</string>
-    <string name="edit">Edit</string>
+    <string name="join_hearing">회의 참가</string>
+    <string name="sign_in">로그인</string>
+    <string name="meeting_text_hint">회의 ID</string>
+    <string name="name_text_hint">표시이름</string>
+    <string name="name">이름:</string>
+    <string name="options">옵션</string>
+    <string name="hearing_audio">오디오에 연결하지 않음</string>
+    <string name="my_video">내 비디오 끄기</string>
+    <string name="meeting_id">회의 ID</string>
+    <string name="edit">편집</string>
     <string name="invite_people">Invite People</string>
 </resources>

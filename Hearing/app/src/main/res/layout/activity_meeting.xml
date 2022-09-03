@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:fontFamily="@font/nunito_semi_bold"
+            android:fontFamily="@font/nunito"
             android:text="@string/join_hearing"
             android:textColor="@color/white"
             android:textSize="@dimen/_20sdp"
@@ -84,23 +84,11 @@
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnInvite"
-            android:layout_width="@dimen/_120sdp"
-            android:layout_height="@dimen/_30sdp"
-            android:background="@drawable/btn_outline_background"
-            android:fontFamily="@font/nunito_semi_bold"
-            android:text="@string/invite_people"
-            android:layout_marginTop="@dimen/_24sdp"
-            android:textAllCaps="false"
-            android:textColor="@color/background_blue"
-            android:textSize="@dimen/_14ssp" />
-
-        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnEdit"
             android:layout_width="@dimen/_64sdp"
             android:layout_height="@dimen/_30sdp"
             android:background="@drawable/btn_outline_background"
-            android:fontFamily="@font/nunito_semi_bold"
+            android:fontFamily="@font/nunito"
             android:layout_marginTop="@dimen/_12sdp"
             android:text="@string/edit"
             android:textAllCaps="false"

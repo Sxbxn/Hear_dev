@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:fontFamily="@font/nunito_semi_bold"
+            android:fontFamily="@font/nunito"
             android:text="@string/join_hearing"
             android:textColor="@color/white"
             android:textSize="@dimen/_20sdp"
@@ -72,7 +72,7 @@
         android:layout_marginEnd="@dimen/_10sdp"
         android:fontFamily="@font/nunito"
         android:text="@string/name"
-        android:textSize="@dimen/_14ssp"
+        android:textSize="@dimen/_12ssp"
         app:layout_constraintEnd_toStartOf="@id/nameLayout"
         app:layout_constraintBottom_toBottomOf="@+id/nameLayout"
         app:layout_constraintStart_toStartOf="parent"
@@ -117,7 +117,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/options"
-            android:textSize="@dimen/_16ssp"
+            android:textSize="@dimen/_14ssp"
             android:fontFamily="@font/nunito_semi_bold"/>
 
         <View
@@ -140,7 +140,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/hearing_audio"
-                android:textSize="@dimen/_14ssp"
+                android:textSize="@dimen/_12ssp"
                 android:fontFamily="@font/nunito"/>
 
             <androidx.appcompat.widget.SwitchCompat
@@ -163,7 +163,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/my_video"
-                android:textSize="@dimen/_14ssp"
+                android:textSize="@dimen/_12ssp"
                 android:fontFamily="@font/nunito"/>
 
             <androidx.appcompat.widget.SwitchCompat
