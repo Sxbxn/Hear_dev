@@ -239,3 +239,8 @@ function micStop() {
   });
   audio.srcObject = null;
 }
+
+// 종료 버튼
+function exit_meeting() {
+  window.location.href = "/"
+}
