@@ -20,7 +20,9 @@
   <link rel="stylesheet" href="/public/stylesheets/meeting.css">
 
   <!-- JS 파일 -->
-  <script defer src="/public/javascripts/meeting.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@mojs/core"></script> -->
+  <script defer src="/socket.io/socket.io.js"></script>
+  <script defer src="/public/js/app.js"></script>
 </head>
 <body>
 
@@ -33,14 +35,18 @@
         <!-- 비디오 화면 구역 -->
         <video id="video_cam" autoplay playsinline></video>
         <video id="screen_sharing" autoplay playsinline></video>
+        <video id="peers_cam" autoplay playsinline></video>
 
         <!-- 채팅 구역 -->
         <div class="chatting">
           <form>
-            <div class="chat_form">
-              <input type="text" placeholder="write a msg" required="required">
-              <button>Send</button>
-            </div>
+            <ul>
+              <div class="chat_form">
+                <input type="text" placeholder="write a msg" required="required">
+                <button>Send</button>
+              </div>
+            </ul>
+
           </form>
         </div>
 
@@ -80,7 +86,6 @@
           </button>
         </div>
       </div>
-
     </div>
   </section>
 

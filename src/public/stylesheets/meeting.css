@@ -15,17 +15,22 @@
   display: flex;
 }
 .main #video_cam {
-  width: 69%;
+  width: 60%;
+  height: 100%;
+  border: 1px solid red;
+}
+.main #peers_cam {
+  width: 20%;
   height: 100%;
   border: 1px solid red;
 }
 .main #screen_sharing {
-  width: 69%;
+  width: 40%;
   height: 100%;
   border: 1px solid red;
 }
 .main .chatting {
-  width: 29%;
+  width: 20%;
   height: 100%;
   border: 1px solid blue;
 }

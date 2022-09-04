@@ -1,8 +1,7 @@
 {
-  "name": "hear_dev",
+  "name": "hear",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Hear I am",
   "scripts": {
     "dev": "nodemon"
   },
@@ -20,6 +19,11 @@
     "@babel/core": "^7.18.13",
     "@babel/node": "^7.18.10",
     "@babel/preset-env": "^7.18.10",
-    "nodemon": "^2.0.12"
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "localtunnel": "^2.0.2",
+    "nodemon": "^2.0.19",
+    "pug": "^3.0.2",
+    "socket.io": "^4.5.2"
   }
 }
