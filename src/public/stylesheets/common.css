@@ -1,0 +1,23 @@
+:root {
+  --hear-blue: #2D8CFF;
+  --hear-light_gray: #C4C4C4;
+  --hear-medium_gray: #929292;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.inner {
+  width: 1130px;
+  margin: 0 auto;
+  position: relative;
+}
