@@ -2,11 +2,19 @@
   "name": "hear",
   "version": "1.0.0",
   "description": "Hear I am",
-  "license": "ISC",
   "scripts": {
     "dev": "nodemon"
   },
-  "dependencies": {
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ppeper/Hear_dev.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ppeper/Hear_dev/issues"
+  },
+  "homepage": "https://github.com/ppeper/Hear_dev#readme",
+  "devDependencies": {
     "@babel/cli": "^7.18.10",
     "@babel/core": "^7.18.13",
     "@babel/node": "^7.18.10",
