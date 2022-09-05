@@ -4,11 +4,16 @@ const socket = io();
 const messageList = document.querySelector("ul");
 const messageForm = document.querySelector("form");
 
-const videoCam = document.querySelector("#video_cam");
+const videoCam = document.querySelector(".video_cam");
 const peersCam = document.querySelector("#peers_cam");
 
 const camerasSelect = document.getElementById("cameras");
 const audiosSelect = document.getElementById("audios");
+
+const camElement = document.getElementsByClassName("video_cam")[0];
+const canvasElement = document.getElementsByClassName('output_canvas')[0];
+canvasElement.style.display = 'none';
+const canvasCtx = canvasElement.getContext('2d');
 
 let myStream;
 let displayStream;
@@ -113,7 +118,7 @@ async function handleAudioChange() {
 }
 
 
-// 버튼 리스너 => onclick 메소드로 바꼈으니까 ... 흠 일단 
+// 버튼 리스너 => onclick 메소드로 바꼈으니까 ... 흠 일단
 camerasSelect.addEventListener("input", handleCameraChange);
 audiosSelect.addEventListener("input", handleAudioChange);
 */
@@ -247,7 +252,7 @@ function present_onoff() {
         const new_text = document.createTextNode('present_to_all');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementById("video_cam").style.display = 'none';
+        document.getElementsByClassName("video_cam").style.display = 'none';
         document.getElementById("screen_sharing").style.display = '';
         sharingStart();
     }
@@ -259,7 +264,7 @@ function present_onoff() {
         const new_text = document.createTextNode('cancel_presentation');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementById("video_cam").style.display = '';
+        document.getElementsByClassName("video_cam").style.display = '';
         document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
     }
@@ -321,31 +326,73 @@ function video_onoff() {
     myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
 }
 
+function onResults(results) {
+  canvasElement.style.display = 'inline';
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(
+      results.image, 0, 0, canvasElement.width, canvasElement.height);
+  if (results.multiHandLandmarks) {
+    for (const landmarks of results.multiHandLandmarks) {
+      drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
+                     {color: '#00FF00', lineWidth: 5});
+      drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+    }
+  }
+  canvasCtx.restore();
+}
+
+
 // 수화 인식: on, off 상태 메서드
 function sl_onoff() {
-    var sl = document.querySelector("#sign_language");
-    while (sl.hasChildNodes()) {
-        sl.removeChild(sl.firstChild);
-    }
-    // off 상태이면,
-    if (sl.value === "off") {
-        sl.value = "on";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        new_span.setAttribute("value", "on");
-        const new_text = document.createTextNode('sign_language');
-        new_span.appendChild(new_text);
-        sl.appendChild(new_span);
-    }
-    // on 상태이면,
-    else {
-        sl.value = "off";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        const new_text = document.createTextNode('do_not_touch');
-        new_span.appendChild(new_text);
-        sl.appendChild(new_span);
-    }
+  var sl = document.querySelector("#sign_language");
+  while (sl.hasChildNodes()) {
+    sl.removeChild(sl.firstChild);
+  }
+  // off 상태이면,
+  if (sl.value === "off") {
+    sl.value = "on";
+    const new_span = document.createElement('span');
+    new_span.setAttribute("class", "material-icons");
+    new_span.setAttribute("value", "on");
+    const new_text = document.createTextNode('sign_language');
+    new_span.appendChild(new_text);
+    sl.appendChild(new_span);
+
+   camElement.style.display = 'none';
+
+    const hands = new Hands({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+    }});
+
+    hands.setOptions({
+        maxNumHands: 2,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+        modelComplexity: 1
+    });
+    hands.onResults(onResults);
+
+    const camera = new Camera(camElement, {
+        onFrame: async () => {
+        await hands.send({image: camElement});
+    },
+        width: 782,
+        height: 795
+    });
+    camera.start();
+  }
+  // on 상태이면,
+  else {
+    sl.value = "off";
+    canvasElement.style.display = 'none';
+    const new_span = document.createElement('span');
+    new_span.setAttribute("class", "material-icons");
+    const new_text = document.createTextNode('do_not_touch');
+    new_span.appendChild(new_text);
+    sl.appendChild(new_span);
+
+  }
 }
 
 // 화면공유 on 메서드

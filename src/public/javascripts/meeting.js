@@ -49,19 +49,19 @@ function set_time() {
   var month = time.getUTCMonth() + 1;
   var day = time.getUTCDate();
   var ymd = year + '-' + month + '-' + day;
-    
+
   var hours = time.getHours();
   var minutes = time.getMinutes();
   var hm = hours + ':' + minutes;
-    
+
   var time_box = document.querySelector(".time_box");
-  time_box.innerText = `${ymd}` + ", " + `${hm}`; 
+  time_box.innerText = `${ymd}` + ", " + `${hm}`;
 }
 set_time();
 setInterval(set_time, 6000); // 1초 = 1000 => 1분 6000
 
 // present: on, off 상태 메서드
-document.getElementById("screen_sharing").style.display = 'none';
+document.getElementsByClassName("screen_sharing").style.display = 'none';
 function present_onoff() {
   var present = document.querySelector("#present");
   while (present.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
@@ -76,8 +76,8 @@ function present_onoff() {
     const new_text = document.createTextNode('present_to_all');
     new_span.appendChild(new_text);
     present.appendChild(new_span);
-    document.getElementById("video_cam").style.display = 'none';
-    document.getElementById("screen_sharing").style.display = '';
+    document.getElementsByClassName("video_cam").style.display = 'none';
+    document.getElementsByClassName("screen_sharing").style.display = '';
     sharingStart();
   }
   // on 상태이면,
@@ -88,8 +88,8 @@ function present_onoff() {
     const new_text = document.createTextNode('cancel_presentation');
     new_span.appendChild(new_text);
     present.appendChild(new_span);
-    document.getElementById("video_cam").style.display = '';
-    document.getElementById("screen_sharing").style.display = 'none';
+    document.getElementsByClassName("video_cam").style.display = '';
+    document.getElementsByClassName("screen_sharing").style.display = 'none';
     sharingStop();
   }
 }
@@ -152,6 +152,22 @@ function video_onoff() {
   }
 }
 
+function onResults(results) {
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(
+      results.image, 0, 0, canvasElement.width, canvasElement.height);
+  if (results.multiHandLandmarks) {
+    for (const landmarks of results.multiHandLandmarks) {
+      drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
+                     {color: '#00FF00', lineWidth: 5});
+      drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+    }
+  }
+  canvasCtx.restore();
+}
+
+
 // 수화 인식: on, off 상태 메서드
 function sl_onoff() {
   var sl = document.querySelector("#sign_language");
@@ -167,6 +183,30 @@ function sl_onoff() {
     const new_text = document.createTextNode('sign_language');
     new_span.appendChild(new_text);
     sl.appendChild(new_span);
+
+    const camElement = document.getElementsByClassName("video_cam")[0];
+    const canvasElement = document.getElementsByClassName('output_canvas')[0];
+    const canvasCtx = canvasElement.getContext('2d');
+
+    const hands = new Hands({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+    }});
+
+    hands.setOptions({
+        maxNumHands: 2,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+    hands.onResults(onResults);
+
+    const camera = new Camera(camElement, {
+        onFrame: async () => {
+        await hands.send({image: camElement});
+    },
+        width: 782,
+        height: 795
+    });
+    camera.start();
   }
   // on 상태이면,
   else {
@@ -177,10 +217,11 @@ function sl_onoff() {
     new_span.appendChild(new_text);
     sl.appendChild(new_span);
   }
+  */
 }
 
 // 화면공유 on 메서드
-const screen = document.getElementById("screen_sharing");
+const screen = document.getElementsByClassName("screen_sharing");
 function sharingStart() {
   navigator.mediaDevices.getDisplayMedia({video: true}).then(function(stream){
     screen.srcObject = stream;
@@ -200,7 +241,7 @@ function sharingStop() {
 }
 
 // 카메라 on 메서드
-const videoCam = document.querySelector("#video_cam");
+const videoCam = document.querySelector(".video_cam");
 // let constraints = {video: { facingMode: "user"}, audio: false};
 function cameraStart() {
   navigator.mediaDevices.getUserMedia({video: {width: 782, height: 795}, audio: false}).then(function(stream){

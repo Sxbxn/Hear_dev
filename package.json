@@ -25,5 +25,8 @@
     "nodemon": "^2.0.19",
     "pug": "^3.0.2",
     "socket.io": "^4.5.2"
+  },
+  "dependencies": {
+    "@mediapipe/hands": "^0.4.1646424915"
   }
 }
