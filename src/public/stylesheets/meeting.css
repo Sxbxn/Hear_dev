@@ -1,64 +1,120 @@
 .inner {
-  width: 1130px;
+  width: 100%;
   height: 100%;
   margin: 0 auto;
   position: relative;
+  background-color: var(--hear-white);
 }
 .inner .main {
+  width: 100%;
   height: 89%;
   display: flex;
   flex-direction: row;
-  margin-top: 10px;
 }
 .inner .bottom_bar {
   height: 9%;
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
-.main #video_cam {
-  width: 60%;
+
+.main .cam {
+  width: 80%;
   height: 100%;
-  border: 1px solid red;
+  margin-top: 20px;
+  margin-left: 15px;
+  /* padding-left: 30px; */
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center; 
+}
+
+.main video {
+  width: 48%;
+  height: 48%;
+  border: 1px solid var(--hear-light_gray);
+  margin-left: 7px;
+  padding: auto;
+  border-radius: 10px;
+}
+
+/* .main #video_cam {
 }
 .main #peers_cam {
-  width: 20%;
-  height: 100%;
+  width: 48%;
+  height: 48%;
   border: 1px solid red;
 }
+
+.main #third {
+  width: 48%;
+  height: 48%;
+  border: 1px solid red;
+}
+.main #fourth {
+  width: 48%;
+  height: 48%;
+  border: 1px solid red;
+} */
+
+
 .main #screen_sharing {
-  width: 40%;
-  height: 100%;
+  width: 48%;
+  height: 48%;
   border: 1px solid red;
 }
 .main .chatting {
   width: 20%;
-  height: 100%;
-  border: 1px solid blue;
+  height: 98%;
+  margin-top: 20px;
+  margin-right: 20px;
+  border: 1px solid var(--hear-light_blue);
+  background-color: var(--hear-light_blue);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
 }
-.main .chatting form {
-  height: 100%;
+.main .chatting .chat_form {
+  margin-top: 5%;
+  height: 97%;
+  width: 95%;
   display: flex;
   position: relative;
+  background-color: #ebf4f6;
+  border-radius: 10px;
 }
-.main .chatting form .chat_form {
+.main .chatting .chat_form .form_content {
   width: 100%;
   height: 10%;
   display: flex;
 	flex-direction: row;
   position: absolute;
   bottom: 0px;
+  border-radius: 10px;
 }
-.main .chatting form .chat_form input {
-  width: 85%;
-  padding-left: 15px;
+.main .chatting .chat_form .form_content input {
+  width: 75%;
+  height: 50%;
+  margin-top: 25px;
+  margin-left: 15px;
+  border: 1px solid var(--hear-medium_gray);
+  border-radius: 10px;
 }
-.main .chatting form .chat_form button {
+
+.main .chatting .chat_form .form_content button {
   width: 15%;
+  margin-top: 15px;
+  color: var(--hear-blue);
 }
 
 .bottom_bar .info {
   width: 250px;
   display: flex;
   flex-direction: row;
+  margin-left: 3%;
 }
 
 .bottom_bar .info .time_box {
@@ -76,6 +132,7 @@
 .bottom_bar .settings {
   width: 600px;
   display: flex;
+  margin-right: 35%;
   flex-direction: row;
   justify-content: center;
 }
