@@ -7,6 +7,8 @@ const messageForm = document.querySelector("form");
 const videoCam = document.querySelector("#video_cam");
 const peersCam = document.querySelector("#peers_cam");
 
+const audio = document.querySelector("#mic");
+
 const camerasSelect = document.getElementById("cameras");
 const audiosSelect = document.getElementById("audios");
 
@@ -16,76 +18,33 @@ let roomName = "abcd-123";
 let myPeerConnection;
 let myDataChannel;
 
-/*
-//장치 선택 (camera)
-async function getCameras() {
-    try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter((device) => device.kind === "videoinput");
-        const currentCamera = myStream.getVideoTracks()[0];
-        cameras.forEach(camera => {
-            const option = document.createElement("option");
-            option.value = camera.deviceId;
-            option.innerText = camera.label;
-            if (currentCamera.label == camera.label) {
-                option.selected = true;
-            }
-            camerasSelect.appendChild(option);
-        })
-    } catch (e) {
-        console.log(e);
-    }
-}
-
-// 장치 선택 (audio)
-async function getAudios() {
-    try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const audios = devices.filter((device) => device.kind === "audioinput");
-        const currentAudio = myStream.getAudioTracks()[0];
-        audios.forEach(audio => {
-            const option = document.createElement("option");
-            option.value = audio.deviceId;
-            option.innerText = audio.label;
-            if (currentAudio.label == audio.label) {
-                option.selected = true;
-            }
-            audiosSelect.appendChild(option);
-        })
-    } catch (e) {
-        console.log(e);
-    }
-}
-*/
-
 // 장치 가져오기 (defult = audio 기본, video = 셀캠)
-async function getMedia(deviceId, kind) {
-    let audioConstraints = true;
-    let cameraConstraints = { facingMode: "user" };
-    if (deviceId) {
-        if (kind === 'audio') {
-            audioConstraints = { deviceId: { exact: deviceId } };
-        } else {
-            cameraConstraints = { deviceId: { exact: deviceId } };
-        }
-    }
-    try {
-        myStream = await navigator.mediaDevices.getUserMedia({
-            audio: audioConstraints,
-            video: cameraConstraints,
-        });
-        videoCam.srcObject = myStream;
-        /* 장치 선택 (회의 밖에서 설정하면 못 바꿀지 바꿀수 있을 지)
-        if (!deviceId) {
-            await getCameras();
-            await getAudios();
-        }
-        */
-    } catch (e) {
-        console.log(e);
-    }
-}
-
+// async function getMedia(deviceId, kind) {
+//     let audioConstraints = true;
+//     let cameraConstraints = { facingMode: "user" };
+//     if (deviceId) {
+//         if (kind === 'audio') {
+//             audioConstraints = { deviceId: { exact: deviceId } };
+//         } else {
+//             cameraConstraints = { deviceId: { exact: deviceId } };
+//         }
+//     }
+//     try {
+//         myStream = await navigator.mediaDevices.getUserMedia({
+//             audio: audioConstraints,
+//             video: cameraConstraints,
+//         });
+//         videoCam.srcObject = myStream;
+//         /* 장치 선택 (회의 밖에서 설정하면 못 바꿀지 바꿀수 있을 지)
+//         if (!deviceId) {
+//             await getCameras();
+//             await getAudios();
+//         }
+//         */
+//     } catch (e) {
+//         console.log(e);
+//     }
+// }
 
 /* 장치 설정 부분
 // 캠 변경
@@ -119,7 +78,7 @@ audiosSelect.addEventListener("input", handleAudioChange);
 */
 
 async function initCall() {
-    await getMedia();
+    // await getMedia();
     makeConnection();
     socket.emit("join_room", "abcd-123");
 }
@@ -280,6 +239,7 @@ function mic_onoff() {
         const new_text = document.createTextNode('mic');
         new_span.appendChild(new_text);
         mic.appendChild(new_span);
+        micStart();
     }
     // on 상태이면,
     else {
@@ -289,8 +249,9 @@ function mic_onoff() {
         const new_text = document.createTextNode('mic_off');
         new_span.appendChild(new_text);
         mic.appendChild(new_span);
+        micStop();
     }
-    myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
+    // myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
 }
 
 // video: on, off 상태 메서드
@@ -308,6 +269,7 @@ function video_onoff() {
         const new_text = document.createTextNode('videocam');
         new_span.appendChild(new_text);
         video.appendChild(new_span);
+        cameraStart();
     }
     // on 상태이면,
     else {
@@ -317,8 +279,36 @@ function video_onoff() {
         const new_text = document.createTextNode('videocam_off');
         new_span.appendChild(new_text);
         video.appendChild(new_span);
+        cameraStop();
     }
-    myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
+    // myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
+}
+
+// stt: on, off 상태 메서드
+function stt_onoff() {
+    var stt = document.querySelector("#stt");
+    while (stt.hasChildNodes()) {
+        stt.removeChild(stt.firstChild);
+    }
+    // off 상태이면,
+    if (stt.value === "off") {
+        stt.value = "on";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        new_span.setAttribute("value", "on");
+        const new_text = document.createTextNode('speaker_notes');
+        new_span.appendChild(new_text);
+        stt.appendChild(new_span);
+    }
+    // on 상태이면,
+    else {
+        stt.value = "off";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        const new_text = document.createTextNode('speaker_notes_off');
+        new_span.appendChild(new_text);
+        stt.appendChild(new_span);
+    }
 }
 
 // 수화 인식: on, off 상태 메서드
@@ -381,4 +371,48 @@ function sharingStop() {
             .find(sender => sender.track.kind === "video");
         prevSender.replaceTrack(prevTrack);
     }
+}
+
+// 카메라 on 메서드
+// let constraints = {video: { facingMode: "user"}, audio: false};
+function cameraStart() {
+  navigator.mediaDevices.getUserMedia({video: {width: 782, height: 795}, audio: false}).then(function(stream){
+    videoCam.srcObject = stream;
+  })
+  .catch(function(error){
+    console.error("카메라에 문제 있음", error);
+  })
+}
+// 카메라 off 메서드
+function cameraStop() {
+  const stream = videoCam.srcObject;
+  const tracks = stream.getTracks();
+  tracks.forEach(function(track) {
+    track.stop();
+  });
+  videoCam.srcObject = null;
+}
+
+// 마이크 on 메서드
+function micStart() {
+  navigator.mediaDevices.getUserMedia({video: false, audio : true}).then(function(stream){
+      audio.srcObject = stream;
+    })
+    .catch(function(error){
+    console.error("마이크에 문제 있음", error);
+  })
+}
+// 마이크 off 메서드
+function micStop() {
+  const stream = audio.srcObject;
+  const tracks = stream.getTracks();
+  tracks.forEach(function(track) {
+    track.stop();
+  });
+  audio.srcObject = null;
+}
+
+// 종료 버튼
+function exit_meeting() {
+  window.location.href = "/"
 }
