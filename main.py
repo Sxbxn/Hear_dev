@@ -38,12 +38,13 @@ angle = angleFile.astype(np.float32)
 label = labelFile.astype(np.float32)
 knn = cv2.ml.KNearest_create()
 knn.train(angle, cv2.ml.ROW_SAMPLE, label)
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0 + cv2.CAP_DSHOW)
 
 startTime = time.time()
 prev_index = 0
 sentence = ''
 recognizeDelay = 1
+
 while True:
     ret, img = cap.read()
     if not ret:
@@ -60,9 +61,24 @@ while True:
             v1 = joint[[0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19], :]
             v2 = joint[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], :]
             v = v2 - v1
+            print(v)
+            print(v.shape)
+            print(np.linalg.norm(v, axis=1)[:, np.newaxis])
+            print(np.linalg.norm(v, axis=1)[:, np.newaxis].shape)
             v = v / np.linalg.norm(v, axis=1)[:, np.newaxis]
+            print(v)
+            print(v.shape)
             compareV1 = v[[0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 16, 17], :]
             compareV2 = v[[1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19], :]
+            '''
+            print(compareV1)
+            print(compareV2)
+            print(np.einsum('nt,nt->n', compareV1, compareV2))
+            print(np.einsum('nt,nt->n', compareV1, compareV2).shape)
+            print(np.diag(np.inner(compareV1, compareV2), k=0))
+            print(np.inner(compareV1, compareV2).shape)
+            '''
+
             angle = np.arccos(np.einsum('nt,nt->n', compareV1, compareV2))
 
             angle = np.degrees(angle)
