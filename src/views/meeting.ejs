@@ -37,9 +37,9 @@
           <video id="video_cam" autoplay playsinline></video>
           <video id="peers_cam" autoplay playsinline></video>
           <video id="third"></video>
+          <video id="screen_sharing" autoplay playsinline></video>
           <video id="fourth"></video>
 
-          <video id="screen_sharing" autoplay playsinline></video>
         </div>
         
 
@@ -48,7 +48,7 @@
           <form class="chat_form">
             <ul>
               <div class="form_content">
-                <input type="text" placeholder="write a msg" required="required">
+                <input type="text" placeholder="메시지 보내기" required="required" class="input_chat">
                 <button class="submit_chat"><span class="material-icons">send</span></button>
               </div>
             </ul>
@@ -66,7 +66,7 @@
           <!-- 현재 시각 -->
           <div class="time_box"></div>
           <!-- 회의 코드 -->
-          <div class="join_code">abcd-123</div>
+          <div class="join_code" onclick="copy_code()">abcd-123</div>
         </div>
 
         <!-- on/off 설정, 종료 버튼 -->
