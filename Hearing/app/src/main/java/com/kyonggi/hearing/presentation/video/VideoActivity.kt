@@ -3,52 +3,83 @@ package com.kyonggi.hearing.presentation.video
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AnimationUtils
+import androidx.activity.viewModels
 import com.kyonggi.hearing.R
 import com.kyonggi.hearing.databinding.ActivityVideoBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class VideoActivity : AppCompatActivity() {
     private lateinit var binding: ActivityVideoBinding
-    // view의 open 여부(테스트용)
-    private var open = true
+    private val viewModel: VideoViewModel by viewModels()
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityVideoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        initListener()
+
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun initListener() {
+        viewModel.isOpenState.observe(this) { check ->
+            binding.remoteView.isSelected = check
+            if (check) {
+                binding.topControlsLayout.visibility = View.VISIBLE
+                binding.bottomControlsLayout.visibility = View.VISIBLE
+            } else {
+                binding.topControlsLayout.visibility = View.GONE
+                binding.bottomControlsLayout.visibility = View.GONE
+            }
+        }
+
+        viewModel.videoState.observe(this) { check ->
+            binding.videoButton.isSelected = check
+            if (check) {
+                binding.switchCameraBtn.visibility = View.VISIBLE
+            } else {
+                binding.switchCameraBtn.visibility = View.GONE
+            }
+        }
+
+        viewModel.micState.observe(this) { check ->
+            binding.micButton.isSelected = check
+        }
+
+        viewModel.screenShareState.observe(this) { check ->
+            binding.screenShareButton.isSelected = check
+        }
+
+        viewModel.audioState.observe(this) { check ->
+            binding.audioOutputButton.isSelected = check
+        }
 
         binding.videoButton.setOnClickListener {
-            if (it.isSelected) {
-                binding.switchCameraBtn.visibility = View.GONE
-                it.isSelected = false
-            } else {
-                binding.switchCameraBtn.visibility = View.VISIBLE
-                it.isSelected = true
-            }
+            viewModel.setVideoState(!it.isSelected)
         }
 
         binding.micButton.setOnClickListener {
-            it.isSelected = !it.isSelected
+            viewModel.setMicState(!it.isSelected)
         }
 
         binding.audioOutputButton.setOnClickListener {
-            it.isSelected = !it.isSelected
+            viewModel.setAudioState(!it.isSelected)
         }
 
         binding.screenShareButton.setOnClickListener {
-            it.isSelected = !it.isSelected
+            viewModel.setScreenShareState(!it.isSelected)
         }
-        binding.root.setOnTouchListener { _, motionEvent ->
-            when (motionEvent.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    setSlideUpAndDown()
-                }
-            }
-            true
+
+        // 화면 터치시 top/bottom hide
+        binding.remoteView.setOnClickListener {
+            setSlideUpAndDown()
+            viewModel.setIsOpenState(!it.isSelected)
         }
+
     }
 
     // View visibility
@@ -59,22 +90,16 @@ class VideoActivity : AppCompatActivity() {
         val top_slideUp = AnimationUtils.loadAnimation(this, R.anim.top_slide_up)
         val top_slideDown = AnimationUtils.loadAnimation(this, R.anim.top_slide_down)
         with(binding) {
-            if (open) {
+            if (remoteView.isSelected) {
                 // Top layout
                 topControlsLayout.startAnimation(top_slideUp)
-                topControlsLayout.visibility = View.GONE
                 // Bottom layout
                 bottomControlsLayout.startAnimation(bottom_slideDown)
-                bottomControlsLayout.visibility = View.GONE
-                open = false
             } else {
                 // Top layout
                 topControlsLayout.startAnimation(top_slideDown)
-                topControlsLayout.visibility = View.VISIBLE
                 // Bottom layout
                 bottomControlsLayout.startAnimation(bottom_slideUp)
-                bottomControlsLayout.visibility = View.VISIBLE
-                open = true
             }
         }
     }
