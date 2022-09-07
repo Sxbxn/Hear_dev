@@ -176,12 +176,12 @@ function set_time() {
     var time = new Date();
 
     var year = time.getUTCFullYear();
-    var month = time.getUTCMonth() + 1;
-    var day = time.getUTCDate();
-    var ymd = year + '-' + month + '-' + day;
+    var month = ('0' + (time.getUTCMonth() + 1)).slice(-2);
+    var day = ('0' + time.getUTCDate()).slice(-2);
+    var ymd = month + '/' + day + '/' + year;
 
-    var hours = time.getHours();
-    var minutes = time.getMinutes();
+    var hours = ('0' + time.getHours()).slice(-2);
+    var minutes = ('0' + time.getMinutes()).slice(-2);
     var hm = hours + ':' + minutes;
 
     var time_box = document.querySelector(".time_box");
@@ -189,6 +189,15 @@ function set_time() {
 }
 set_time();
 setInterval(set_time, 6000); // 1초 = 1000 => 1분 6000
+
+// 회의 코드 복사
+function copy_code() {
+    const code = document.querySelector(".join_code");
+
+    window.navigator.clipboard.writeText(code.textContent).then(() => {
+      alert('회의 코드 복사 완료!');
+    });
+};
 
 // present: on, off 상태 메서드
 document.getElementById("screen_sharing").style.display = 'none';
@@ -206,7 +215,7 @@ function present_onoff() {
         const new_text = document.createTextNode('present_to_all');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementById("video_cam").style.display = 'none';
+        document.getElementById("third").style.display = 'none';
         document.getElementById("screen_sharing").style.display = '';
         sharingStart();
     }
@@ -218,7 +227,7 @@ function present_onoff() {
         const new_text = document.createTextNode('cancel_presentation');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementById("video_cam").style.display = '';
+        document.getElementById("third").style.display = '';
         document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
     }
