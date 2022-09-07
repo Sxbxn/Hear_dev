@@ -75,12 +75,13 @@ async function getMedia(deviceId, kind) {
             video: cameraConstraints,
         });
         videoCam.srcObject = myStream;
-        /* 장치 선택 (회의 밖에서 설정하면 못 바꿀지 바꿀수 있을 지)
         if (!deviceId) {
-            await getCameras();
-            await getAudios();
+            //await getCameras();
+            //await getAudios();
+            myStream.getAudioTracks().forEach((track) => (track.enabled = false));
+            myStream.getVideoTracks().forEach((track) => (track.enabled = false));
         }
-        */
+        
     } catch (e) {
         console.log(e);
     }
