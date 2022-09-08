@@ -19,32 +19,34 @@ let myPeerConnection;
 let myDataChannel;
 
 // 장치 가져오기 (defult = audio 기본, video = 셀캠)
-// async function getMedia(deviceId, kind) {
-//     let audioConstraints = true;
-//     let cameraConstraints = { facingMode: "user" };
-//     if (deviceId) {
-//         if (kind === 'audio') {
-//             audioConstraints = { deviceId: { exact: deviceId } };
-//         } else {
-//             cameraConstraints = { deviceId: { exact: deviceId } };
-//         }
-//     }
-//     try {
-//         myStream = await navigator.mediaDevices.getUserMedia({
-//             audio: audioConstraints,
-//             video: cameraConstraints,
-//         });
-//         videoCam.srcObject = myStream;
-//         /* 장치 선택 (회의 밖에서 설정하면 못 바꿀지 바꿀수 있을 지)
-//         if (!deviceId) {
-//             await getCameras();
-//             await getAudios();
-//         }
-//         */
-//     } catch (e) {
-//         console.log(e);
-//     }
-// }
+async function getMedia(deviceId, kind) {
+    let audioConstraints = true;
+    let cameraConstraints = { facingMode: "user" };
+    if (deviceId) {
+        if (kind === 'audio') {
+            audioConstraints = { deviceId: { exact: deviceId } };
+        } else {
+            cameraConstraints = { deviceId: { exact: deviceId } };
+        }
+    }
+    try {
+        myStream = await navigator.mediaDevices.getUserMedia({
+            audio: audioConstraints,
+            video: cameraConstraints,
+        });
+        videoCam.srcObject = myStream;
+        if (!deviceId) {
+            //await getCameras();
+            //await getAudios();
+            myStream.getAudioTracks().forEach((track) => (track.enabled = false));
+            myStream.getVideoTracks().forEach((track) => (track.enabled = false));
+        }
+        
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 
 /* 장치 설정 부분
 // 캠 변경
@@ -78,7 +80,7 @@ audiosSelect.addEventListener("input", handleAudioChange);
 */
 
 async function initCall() {
-    // await getMedia();
+    await getMedia();
     makeConnection();
     socket.emit("join_room", "abcd-123");
 }
@@ -385,7 +387,7 @@ function sharingStop() {
 // 카메라 on 메서드
 // let constraints = {video: { facingMode: "user"}, audio: false};
 function cameraStart() {
-  navigator.mediaDevices.getUserMedia({video: {width: 782, height: 795}, audio: false}).then(function(stream){
+then(function(stream){
     videoCam.srcObject = stream;
   })
   .catch(function(error){
