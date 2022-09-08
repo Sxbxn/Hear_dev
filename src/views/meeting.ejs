@@ -22,7 +22,9 @@
   <!-- JS 파일 -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/@mojs/core"></script> -->
   <script defer src="/socket.io/socket.io.js"></script>
-  <script defer src="/public/js/app.js"></script>
+  <script defer src="/public/javascripts/app.js"></script>
+  <script defer src="/public/javascripts/meeting.js"></script>
+
 </head>
 <body>
 
@@ -66,32 +68,32 @@
           <!-- 현재 시각 -->
           <div class="time_box"></div>
           <!-- 회의 코드 -->
-          <div class="join_code" onclick="copy_code()">abcd-123</div>
+          <div class="join_code" onclick="copyCode()">abcd-123</div>
         </div>
 
         <!-- on/off 설정, 종료 버튼 -->
         <div class="settings">
-          <button id="present" value="off" onclick="present_onoff()">
+          <button id="present" value="off" onclick="presentOnOff()">
             <span class="material-icons">cancel_presentation</span>
           </button>
 
-          <button id="mic" value="off" onclick="mic_onoff()">
+          <button id="mic" value="off" onclick="micOnOff()">
             <span class="material-icons">mic_off</span>
           </button>
 
-          <button id="video" value="off" onclick="video_onoff()">
+          <button id="video" value="off" onclick="videoOnOff()">
             <span class="material-icons">videocam_off</span>
           </button>
 
-          <button id="stt" value="off" onclick="stt_onoff()">
+          <button id="stt" value="off" onclick="sttOnOff()">
             <span class="material-icons">speaker_notes_off</span>
           </button>
 
-          <button id="sign_language" value="off" onclick="sl_onoff()">
+          <button id="sign_language" value="off" onclick="slOnOff()">
             <span class="material-icons">do_not_touch</span>        
           </button>
 
-          <button id="exit" onclick="exit_meeting()">
+          <button id="exit" onclick="exitMeeting()">
             <span class="material-icons">exit_to_app</span>
           </button>
         </div>
