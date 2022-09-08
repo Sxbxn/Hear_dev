@@ -16,7 +16,7 @@ function setTime() {
   var time_box = document.querySelector(".time_box");
   time_box.innerText = `${ymd}` + ", " + `${hm}`;
 }
-set_time();
+setTime();
 setInterval(setTime, 6000); // 1초 = 1000 => 1분 6000
 
 // 회의 코드 복사 기능
