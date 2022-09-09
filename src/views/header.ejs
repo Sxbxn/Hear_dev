@@ -3,23 +3,24 @@
     <div class="inner">
 
       <div onClick="location.href='/'" class="logo">
-        <img src="/public/images/ear.png" alt="ear-logo"/>
+        <img src="/public/images/mainLogo.png"/>
       </div>
-      <div class="title">I'm Hear</div>
+      <!-- <div class="title">I'm Hear</div> -->
       
       <div class="start">
         <!-- 닉네임 입력 전 -->
-        <!-- <form class="nickname">
+        <form class="nickname" id="nickname">
           <input type="text" placeholder="닉네임을 입력해주세요" required="required" class="input_nick">
           <button class="enter_nick">
             <span class="material-icons">check_circle_outline</span>
           </button>
-        </form> -->
+        </form>
 
         <!-- 닉네임 입력 후 -->
+        <div class="my_nick"></div>
         <div class="after_nick">
+          <a href="/meeting" title="Button border lightblue" class="button btnBorder btnLightBlue">회의 시작하기</a>
           <a title="Button border lightGray" class="button btnBorder btnLightGray">회의 코드 입력</a>
-          <a href="" title="Button border lightblue" class="button btnBorder btnLightBlue">회의 시작하기</a>
         </div>
       </div>
   

@@ -7,7 +7,7 @@
   <title>I'm Hear</title>
 
   <!-- favicon 선언 -->
-  <!-- <link rel="icon" href="/images/.png"> -->
+  <link rel="icon" href="/public/images/ear.png">
 
   <!-- 브라우저 기본 CSS 초기화 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -22,7 +22,9 @@
   <!-- JS 파일 -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/@mojs/core"></script> -->
   <script defer src="/socket.io/socket.io.js"></script>
-  <script defer src="/public/js/app.js"></script>
+  <script defer src="/public/javascripts/app.js"></script>
+  <script defer src="/public/javascripts/meeting.js"></script>
+
 </head>
 <body>
 
@@ -46,7 +48,7 @@
         <!-- 채팅 구역 -->
         <div class="chatting">
           <form class="chat_form">
-            <ul>
+            <ul class="chat_ul">
               <div class="form_content">
                 <input type="text" placeholder="메시지 보내기" required="required" class="input_chat">
                 <button class="submit_chat"><span class="material-icons">send</span></button>
@@ -66,32 +68,32 @@
           <!-- 현재 시각 -->
           <div class="time_box"></div>
           <!-- 회의 코드 -->
-          <div class="join_code" onclick="copy_code()">abcd-123</div>
+          <div class="join_code" onclick="copyCode()">abcd-123</div>
         </div>
 
         <!-- on/off 설정, 종료 버튼 -->
         <div class="settings">
-          <button id="present" value="off" onclick="present_onoff()">
+          <button id="present" value="off" onclick="presentOnOff()">
             <span class="material-icons">cancel_presentation</span>
           </button>
 
-          <button id="mic" value="off" onclick="mic_onoff()">
+          <button id="mic" value="off" onclick="micOnOff()">
             <span class="material-icons">mic_off</span>
           </button>
 
-          <button id="video" value="off" onclick="video_onoff()">
+          <button id="video" value="off" onclick="videoOnOff()">
             <span class="material-icons">videocam_off</span>
           </button>
 
-          <button id="stt" value="off" onclick="stt_onoff()">
+          <button id="stt" value="off" onclick="sttOnOff()">
             <span class="material-icons">speaker_notes_off</span>
           </button>
 
-          <button id="sign_language" value="off" onclick="sl_onoff()">
+          <button id="sign_language" value="off" onclick="slOnOff()">
             <span class="material-icons">do_not_touch</span>        
           </button>
 
-          <button id="exit" onclick="exit_meeting()">
+          <button id="exit" onclick="exitMeeting()">
             <span class="material-icons">exit_to_app</span>
           </button>
         </div>

@@ -50,13 +50,14 @@ header .logo {
 
 header .logo img {
   cursor: pointer;
-  width: 30px;
-  height: 30px;
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
 }
 
 .inner .start {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   margin-left: 70%;
 }
@@ -71,7 +72,7 @@ header .logo img {
   background-color: var(--hear-blue);
   border: 2px solid black;
   border-radius: 5px;
-  margin-left: 45px;
+  margin-left: 55px;
   margin-right: 5px;
 }
 .nickname .input_nick::placeholder {
@@ -85,39 +86,9 @@ header .logo img {
   margin-left: 5px;
 }
 
-/* 
-.join_meet1 {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 2.5%;
-  margin-right: 5%;
+.start .my_nick {
+  color: var(--hear-gray);
 }
-
-.join_meet1 .input_code {
-  height: 48px;
-  width: 120px;
-
-  background: var(--hear-gray);
-  border: 2px solid black;
-  border-radius: 5px;
-}
-.join_meet1 .input_code::placeholder {
-  color: white;
-  font-size: var(--small-font);
-  font-weight: 300;
-  text-align: center;
-} */
-
-/* .join_meet1 .code_join1 {
-  height: 48px;
-  margin-left: 2%;
-  margin-right: 5%
-} */
-/* 
-button.btnBorder.btnLightWhite {
-  color: black;
-} */
 
 .start .after_nick {
   display: flex;
@@ -166,8 +137,8 @@ footer .logo {
 footer .logo img {
   width: auto;
   height: auto;
-  max-height: 120px;
-  max-width: 120px;
+  max-height: 80px;
+  max-width: 80px;
 }
 footer .info {
   font-size: var(--small-font);
