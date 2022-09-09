@@ -1,3 +1,7 @@
+.disable {
+  pointer-events: none;
+}
+
 section .main {
   width: 80%;
 }
@@ -23,7 +27,7 @@ section .main {
   margin-top: 10px;
   font-size: var(--most-big-font);
   text-align: center;
-  height: 20%;
+  height: 15%;
 }
 .welcome_box .headline_add {
   /* margin-top: 25px; */
@@ -31,7 +35,7 @@ section .main {
   font-size: var(--big-font);
   line-height: 170%;
   text-align: center;
-  height: 65%;
+  height: 70%;
 }
 .welcome_box .start_meeting {
   display: flex;
@@ -39,7 +43,7 @@ section .main {
   justify-content: center;
   align-items: center;
   font-size: var(--small-font);
-  height: 22%;
+  height: 15%;
 }
 
 a.button {
