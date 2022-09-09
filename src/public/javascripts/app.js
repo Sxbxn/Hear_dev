@@ -7,6 +7,7 @@ const socket = io();
 
 const messageList = document.querySelector("ul");
 const messageForm = document.querySelector(".chat_form");
+const roominfo = document.querySelector(".join_code");
 const videoCam = document.querySelector("#video_cam");
 const peersCam = document.querySelector("#peers_cam");
 const audio = document.querySelector("#mic");
@@ -18,11 +19,14 @@ let displayStream;
 let myPeerConnection;
 let myDataChannel;
 let recognition;
-let roomName = 'abcd-123';
+
 const infoString = localStorage.getItem('info');
 const info = JSON.parse(infoString);
+const nickname = info.nickname;
+const roomName = info.roomName;
+roominfo.innerText = roomName;
+localStorage.clear();
 
-console.log(info);
 
 // 장치 가져오기 (defult = audio 기본, video = 셀캠)
 async function getMedia(deviceId, kind) {
@@ -124,9 +128,9 @@ function startSTT() {
         const transcript = event.results[event.resultIndex][0].transcript;
 
         if (event.results[event.resultIndex].isFinal) {
-            myDataChannel.send(transcript);
+            myDataChannel.send(nickname+" : " + transcript);
             const li = document.createElement("li");
-            li.innerText = "myID : " + transcript;
+            li.innerText = nickname+" : " + transcript;
             messageList.append(li);
         }
     });
@@ -136,7 +140,7 @@ async function initCall() {
     await getMedia();
     makeConnection();
     startSTT();
-    socket.emit("join_room", "abcd-123");
+    socket.emit("join_room", roomName);
 }
 
 initCall();
@@ -147,7 +151,7 @@ socket.on("welcome", async () => {
     messageForm.addEventListener("submit", handleSubmit);
     myDataChannel.addEventListener("message", (event) => {
         const li = document.createElement("li");
-        li.innerText = "yourID : " + event.data;
+        li.innerText = event.data;
         messageList.append(li);
     });
     const offer = await myPeerConnection.createOffer();
@@ -163,7 +167,7 @@ socket.on("offer", async (offer) => {
         messageForm.addEventListener("submit", handleSubmit);
         myDataChannel.addEventListener("message", (event) => {
             const li = document.createElement("li");
-            li.innerText = "yourID : " + event.data;
+            li.innerText = event.data;
             messageList.append(li);
         });
     });
@@ -186,9 +190,9 @@ socket.on("ice", ice => {
 function handleSubmit(event) {
     event.preventDefault();
     const input = messageForm.querySelector("input");
-    myDataChannel.send(input.value);
+    myDataChannel.send(nickname+" : " + input.value);
     const li = document.createElement("li");
-    li.innerText = "myID : " + input.value;
+    li.innerText = nickname+" : " + input.value;
     messageList.append(li);
     input.value = "";
 }
