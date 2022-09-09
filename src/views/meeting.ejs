@@ -23,6 +23,10 @@
   <!-- <script src="https://cdn.jsdelivr.net/npm/@mojs/core"></script> -->
   <script defer src="/socket.io/socket.io.js"></script>
   <script defer src="/public/js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -33,7 +37,8 @@
       <div class="main">
 
         <!-- 비디오 화면 구역 -->
-        <video id="video_cam" autoplay playsinline></video>
+        <video class="video_cam" autoplay playsinline></video>
+        <canvas class="output_canvas" width="782px" height="795px"></canvas>
         <video id="screen_sharing" autoplay playsinline></video>
         <video id="peers_cam" autoplay playsinline></video>
 
@@ -88,6 +93,5 @@
       </div>
     </div>
   </section>
-
 </body>
 </html>
