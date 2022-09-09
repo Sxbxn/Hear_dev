@@ -39,7 +39,7 @@ section .main {
   justify-content: center;
   align-items: center;
   font-size: var(--small-font);
-  height: 20%;
+  height: 22%;
 }
 
 a.button {
