@@ -27,3 +27,20 @@ function copyCode() {
     alert('회의 코드 복사 완료!');
   });
 };
+
+// 채팅창 스크롤 최하단 이동
+let chatForm = document.querySelector('.chat_form');
+
+function prepareScroll() {
+  window.setTimeout(scrollUl, 50);
+}
+function scrollUl() { 
+  let chatUl = document.querySelector('.chat_ul');
+  let h = chatUl.lastChild.offsetHeight; // 새로 추가된 li(가장 마지막 채팅)의 높이
+  // console.log(`h값: ${h}`); 
+
+  // console.log(chatUl.scrollTop); // 현재 스크롤의 위치, 내리지 않았을 경우 0 (최상단)
+  // console.log(chatUl.scrollHeight); // 스크롤의 전체 길이
+  chatUl.scrollTop = chatUl.scrollHeight + h; // 스크롤의 위치를 최하단으로
+}
+chatForm.addEventListener('submit', prepareScroll);
