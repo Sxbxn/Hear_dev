@@ -17,6 +17,8 @@ let myStream;
 let displayStream;
 let myPeerConnection;
 let myDataChannel;
+let recognition;
+let roomName = 'abcd-123';
 const infoString = localStorage.getItem('info');
 const info = JSON.parse(infoString);
 
@@ -107,17 +109,9 @@ function handleAddStream(data) {
     peersCam.srcObject = data.stream;
 }
 
-
-async function initCall() {
-    await getMedia();
-    makeConnection();
-    startSTT();
-    socket.emit("join_room", "abcd-123");
-}
-
 function startSTT() {
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    recognition = new SpeechRecognition();
     if (!recognition) {
         alert("no stt");
     }
@@ -136,6 +130,13 @@ function startSTT() {
             messageList.append(li);
         }
     });
+}
+
+async function initCall() {
+    await getMedia();
+    makeConnection();
+    startSTT();
+    socket.emit("join_room", "abcd-123");
 }
 
 initCall();
