@@ -76,7 +76,7 @@ function present_onoff() {
     const new_text = document.createTextNode('present_to_all');
     new_span.appendChild(new_text);
     present.appendChild(new_span);
-    document.getElementById("video_cam").style.display = 'none';
+    document.getElementById("third").style.display = 'none';
     document.getElementById("screen_sharing").style.display = '';
     sharingStart();
   }
@@ -88,7 +88,7 @@ function present_onoff() {
     const new_text = document.createTextNode('cancel_presentation');
     new_span.appendChild(new_text);
     present.appendChild(new_span);
-    document.getElementById("video_cam").style.display = '';
+    document.getElementById("third").style.display = '';
     document.getElementById("screen_sharing").style.display = 'none';
     sharingStop();
   }

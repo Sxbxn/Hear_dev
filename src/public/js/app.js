@@ -2,10 +2,12 @@ const socket = io();
 
 //변수
 const messageList = document.querySelector("ul");
-const messageForm = document.querySelector("form");
+const messageForm = document.querySelector(".chat_form");
 
 const videoCam = document.querySelector("#video_cam");
 const peersCam = document.querySelector("#peers_cam");
+
+const audio = document.querySelector("#mic");
 
 const camerasSelect = document.getElementById("cameras");
 const audiosSelect = document.getElementById("audios");
@@ -15,48 +17,6 @@ let displayStream;
 let roomName = "abcd-123";
 let myPeerConnection;
 let myDataChannel;
-
-/*
-//장치 선택 (camera)
-async function getCameras() {
-    try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter((device) => device.kind === "videoinput");
-        const currentCamera = myStream.getVideoTracks()[0];
-        cameras.forEach(camera => {
-            const option = document.createElement("option");
-            option.value = camera.deviceId;
-            option.innerText = camera.label;
-            if (currentCamera.label == camera.label) {
-                option.selected = true;
-            }
-            camerasSelect.appendChild(option);
-        })
-    } catch (e) {
-        console.log(e);
-    }
-}
-
-// 장치 선택 (audio)
-async function getAudios() {
-    try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const audios = devices.filter((device) => device.kind === "audioinput");
-        const currentAudio = myStream.getAudioTracks()[0];
-        audios.forEach(audio => {
-            const option = document.createElement("option");
-            option.value = audio.deviceId;
-            option.innerText = audio.label;
-            if (currentAudio.label == audio.label) {
-                option.selected = true;
-            }
-            audiosSelect.appendChild(option);
-        })
-    } catch (e) {
-        console.log(e);
-    }
-}
-*/
 
 // 장치 가져오기 (defult = audio 기본, video = 셀캠)
 async function getMedia(deviceId, kind) {
@@ -86,7 +46,6 @@ async function getMedia(deviceId, kind) {
         console.log(e);
     }
 }
-
 
 /* 장치 설정 부분
 // 캠 변경
@@ -127,8 +86,27 @@ async function initCall() {
 
 // 페이지 들어옴 !
 initCall();
+window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+if (!recognition) {
+    alert("no stt");
+}
+recognition.interimResults = true;
+recognition.lang = "ko-KR";
+recognition.continuous = true;
+recognition.maxAlternatives = 5000;
 
 
+recognition.addEventListener('result', (event) => {
+    const transcript = event.results[event.resultIndex][0].transcript;
+    
+    if (event.results[event.resultIndex].isFinal) {
+        myDataChannel.send(transcript);
+        const li = document.createElement("li");
+        li.innerText = "myID : " + transcript;
+        messageList.append(li);
+    }
+});
 
 // Socket Code
 
@@ -218,12 +196,12 @@ function set_time() {
     var time = new Date();
 
     var year = time.getUTCFullYear();
-    var month = time.getUTCMonth() + 1;
-    var day = time.getUTCDate();
-    var ymd = year + '-' + month + '-' + day;
+    var month = ('0' + (time.getUTCMonth() + 1)).slice(-2);
+    var day = ('0' + time.getUTCDate()).slice(-2);
+    var ymd = month + '/' + day + '/' + year;
 
-    var hours = time.getHours();
-    var minutes = time.getMinutes();
+    var hours = ('0' + time.getHours()).slice(-2);
+    var minutes = ('0' + time.getMinutes()).slice(-2);
     var hm = hours + ':' + minutes;
 
     var time_box = document.querySelector(".time_box");
@@ -231,6 +209,15 @@ function set_time() {
 }
 set_time();
 setInterval(set_time, 6000); // 1초 = 1000 => 1분 6000
+
+// 회의 코드 복사
+function copy_code() {
+    const code = document.querySelector(".join_code");
+
+    window.navigator.clipboard.writeText(code.textContent).then(() => {
+      alert('회의 코드 복사 완료!');
+    });
+};
 
 // present: on, off 상태 메서드
 document.getElementById("screen_sharing").style.display = 'none';
@@ -248,7 +235,7 @@ function present_onoff() {
         const new_text = document.createTextNode('present_to_all');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementById("video_cam").style.display = 'none';
+        document.getElementById("third").style.display = 'none';
         document.getElementById("screen_sharing").style.display = '';
         sharingStart();
     }
@@ -260,7 +247,7 @@ function present_onoff() {
         const new_text = document.createTextNode('cancel_presentation');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementById("video_cam").style.display = '';
+        document.getElementById("third").style.display = '';
         document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
     }
@@ -281,6 +268,7 @@ function mic_onoff() {
         const new_text = document.createTextNode('mic');
         new_span.appendChild(new_text);
         mic.appendChild(new_span);
+        micStart();
     }
     // on 상태이면,
     else {
@@ -290,8 +278,9 @@ function mic_onoff() {
         const new_text = document.createTextNode('mic_off');
         new_span.appendChild(new_text);
         mic.appendChild(new_span);
+        micStop();
     }
-    myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
+    // myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
 }
 
 // video: on, off 상태 메서드
@@ -309,6 +298,7 @@ function video_onoff() {
         const new_text = document.createTextNode('videocam');
         new_span.appendChild(new_text);
         video.appendChild(new_span);
+        //cameraStart();
     }
     // on 상태이면,
     else {
@@ -318,8 +308,38 @@ function video_onoff() {
         const new_text = document.createTextNode('videocam_off');
         new_span.appendChild(new_text);
         video.appendChild(new_span);
+        //cameraStop();
     }
     myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
+}
+
+// stt: on, off 상태 메서드
+function stt_onoff() {
+    var stt = document.querySelector("#stt");
+    while (stt.hasChildNodes()) {
+        stt.removeChild(stt.firstChild);
+    }
+    // off 상태이면,
+    if (stt.value === "off") {
+        stt.value = "on";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        new_span.setAttribute("value", "on");
+        const new_text = document.createTextNode('speaker_notes');
+        new_span.appendChild(new_text);
+        stt.appendChild(new_span);
+        recognition.start();
+    }
+    // on 상태이면,
+    else {
+        stt.value = "off";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        const new_text = document.createTextNode('speaker_notes_off');
+        new_span.appendChild(new_text);
+        stt.appendChild(new_span);
+        recognition.stop();
+    }
 }
 
 // 수화 인식: on, off 상태 메서드
@@ -382,4 +402,48 @@ function sharingStop() {
             .find(sender => sender.track.kind === "video");
         prevSender.replaceTrack(prevTrack);
     }
+}
+
+// 카메라 on 메서드
+// let constraints = {video: { facingMode: "user"}, audio: false};
+function cameraStart() {
+  navigator.mediaDevices.getUserMedia({video: {width: 782, height: 795}, audio: false}).then(function(stream){
+    videoCam.srcObject = stream;
+  })
+  .catch(function(error){
+    console.error("카메라에 문제 있음", error);
+  })
+}
+// 카메라 off 메서드
+function cameraStop() {
+  const stream = videoCam.srcObject;
+  const tracks = stream.getTracks();
+  tracks.forEach(function(track) {
+    track.stop();
+  });
+  videoCam.srcObject = null;
+}
+
+// 마이크 on 메서드
+function micStart() {
+  navigator.mediaDevices.getUserMedia({video: false, audio : true}).then(function(stream){
+      audio.srcObject = stream;
+    })
+    .catch(function(error){
+    console.error("마이크에 문제 있음", error);
+  })
+}
+// 마이크 off 메서드
+function micStop() {
+  const stream = audio.srcObject;
+  const tracks = stream.getTracks();
+  tracks.forEach(function(track) {
+    track.stop();
+  });
+  audio.srcObject = null;
+}
+
+// 종료 버튼
+function exit_meeting() {
+  window.location.href = "/"
 }

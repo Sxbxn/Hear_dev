@@ -42,16 +42,20 @@
           <div class="start_meeting">
             <a href="/meeting" title="Button push lightblue" class="button btnPush btnLightBlue">회의 시작하기</a>
             <div class="or">또는</div>
-            <div class="join_meet">
+            <form class="join_meet">
               <input type="text" placeholder="회의 코드 입력" required="required" class="input_code">
-              <button class="code_join">참여</button>
-            </div>
+              <button class="code_join">
+                <span class="material-icons">check_circle_outline</span>
+              </button>
+            </form>
           </div>
         </div>
 
         <!-- 소개 이미지 -->
         <div class="main_img">
-          <img src="/public/images/cute_moon.png" class="welcome_img">
+          <div class="main_img_plus">
+            <img src="/public/images/cute_moon.png" class="welcome_img">
+          </div>
         </div>
 
       </div>
