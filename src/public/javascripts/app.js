@@ -11,6 +11,7 @@ const messageForm = document.querySelector("form");
 
 const videoCam = document.querySelector(".video_cam");
 const peersCam = document.querySelector("#peers_cam");
+const screen = document.getElementById("screen_sharing");
 
 const audio = document.querySelector("#mic");
 
@@ -658,8 +659,87 @@ function handleSubmit(event) {
     input.value = "";
 }
 
+// 각 화면 확대·축소 클릭 이벤트
+videoCam.addEventListener('click', function () {
+    if (videoCam.getAttribute('class') == "min") {
+        videoCam.setAttribute('class', 'max');
+        maxScreen(videoCam);
+    }
+    else {
+        videoCam.setAttribute('class', 'min');
+        minScreen(videoCam);
+    }
+    
+});
+peersCam.addEventListener('click', function () {
+    if (peersCam.getAttribute('class') == "min") {
+        peersCam.setAttribute('class', 'max');
+        maxScreen(peersCam);
+    }
+    else {
+        peersCam.setAttribute('class', 'min');
+        minScreen(peersCam);
+    }
+});
+screen.addEventListener('click', function () {
+    if (screen.getAttribute('class') == "min") {
+        screen.setAttribute('class', 'max');
+        maxScreen(screen);
+    }
+    else {
+        screen.setAttribute('class', 'min');
+        minScreen(screen);
+    }
+});
+
+// 화면 확대
+function maxScreen(clickVideo) {
+    const cv = clickVideo.getAttribute('id'); // object의 id 속성 값 가져오기
+    // console.log(cv);
+
+    const cam = document.querySelector(".cam");
+
+    let childCam = cam.childNodes;
+    for(var i = 0; i < childCam.length; i++) {
+        let childTag = childCam[i];
+
+        if (childTag.nodeName == "VIDEO") {
+            childTag.style.display = 'none';
+        }
+    }
+    let fullCam = document.getElementById(`${cv}`);
+    fullCam.style.display = '';
+
+    // fullCam.setAttribute('class', 'full'); // full 클래스 css가 적용 안됨..
+    fullCam.style.width = "98%";
+    fullCam.style.height = "98%";
+    fullCam.style.border = "1px solid #8ba3b5";
+    fullCam.style.borderRadius = "10px";
+    
+};
+
+// 화면 축소
+function minScreen(clickVideo) {
+    const cv = clickVideo.getAttribute('id'); // object의 id 속성 값 가져오기
+    const cam = document.querySelector(".cam");
+
+    let childCam = cam.childNodes;
+    for(var i = 0; i < childCam.length; i++) {
+        let childTag = childCam[i];
+
+        if (childTag.nodeName == "VIDEO") {
+            childTag.style.display = '';
+        }
+    }
+    let beforeCam = document.getElementById(`${cv}`);
+    console.log(beforeCam);
+    beforeCam.style.display = '';
+    beforeCam.style.width = "48%";
+    beforeCam.style.height = "48%";    
+};
+
 // 화면공유 버튼 on, off
-document.getElementById("screen_sharing").style.display = 'none';
+// document.getElementById("screen_sharing").style.display = 'none';
 function presentOnOff() {
     var present = document.querySelector("#present");
     while (present.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
@@ -677,6 +757,8 @@ function presentOnOff() {
         document.getElementsByClassName("video_cam").style.display = 'none';
         document.getElementById("third").style.display = 'none';
         document.getElementById("screen_sharing").style.display = '';
+        // document.getElementById("third").style.display = 'none';
+        // document.getElementById("screen_sharing").style.display = '';
         sharingStart();
     }
     // on 상태이면,
@@ -690,11 +772,12 @@ function presentOnOff() {
         document.getElementsByClassName("video_cam").style.display = '';
         document.getElementById("third").style.display = '';
         document.getElementById("screen_sharing").style.display = 'none';
+        // document.getElementById("third").style.display = '';
+        // document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
     }
 }
 // 화면공유 기능 on 메서드
-const screen = document.getElementById("screen_sharing");
 async function sharingStart() {
     try {
         displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
