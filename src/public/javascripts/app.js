@@ -1,3 +1,8 @@
+/* 소켓 설정
+ * webRTC 설정
+ * 버튼 기능 (화면공유, 마이크, 캠, STT, 수화인식, 종료)
+ */
+
 const socket = io();
 
 //변수
@@ -6,6 +11,8 @@ const messageForm = document.querySelector("form");
 
 const videoCam = document.querySelector(".video_cam");
 const peersCam = document.querySelector("#peers_cam");
+
+const audio = document.querySelector("#mic");
 
 const camerasSelect = document.getElementById("cameras");
 const audiosSelect = document.getElementById("audios");
@@ -518,12 +525,13 @@ async function getMedia(deviceId, kind) {
             video: cameraConstraints,
         });
         videoCam.srcObject = myStream;
-        /* 장치 선택 (회의 밖에서 설정하면 못 바꿀지 바꿀수 있을 지)
         if (!deviceId) {
-            await getCameras();
-            await getAudios();
+            //await getCameras();
+            //await getAudios();
+            myStream.getAudioTracks().forEach((track) => (track.enabled = false));
+            myStream.getVideoTracks().forEach((track) => (track.enabled = false));
         }
-        */
+        
     } catch (e) {
         console.log(e);
     }
@@ -570,10 +578,9 @@ async function initCall() {
 // 페이지 들어옴 !
 initCall();
 
-
+//
 
 // Socket Code
-
 socket.on("welcome", async () => {
     myDataChannel = myPeerConnection.createDataChannel("chat");
     messageForm.addEventListener("submit", handleSubmit);
@@ -616,7 +623,6 @@ socket.on("ice", ice => {
 });
 
 // RTC Code
-
 const peerConnectionConfig = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -652,31 +658,9 @@ function handleSubmit(event) {
     input.value = "";
 }
 
-
-// start
-
-// 현재 시각
-function set_time() {
-    var time = new Date();
-
-    var year = time.getUTCFullYear();
-    var month = time.getUTCMonth() + 1;
-    var day = time.getUTCDate();
-    var ymd = year + '-' + month + '-' + day;
-
-    var hours = time.getHours();
-    var minutes = time.getMinutes();
-    var hm = hours + ':' + minutes;
-
-    var time_box = document.querySelector(".time_box");
-    time_box.innerText = `${ymd}` + ", " + `${hm}`;
-}
-set_time();
-setInterval(set_time, 6000); // 1초 = 1000 => 1분 6000
-
-// present: on, off 상태 메서드
+// 화면공유 버튼 on, off
 document.getElementById("screen_sharing").style.display = 'none';
-function present_onoff() {
+function presentOnOff() {
     var present = document.querySelector("#present");
     while (present.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
         present.removeChild(present.firstChild);
@@ -691,6 +675,7 @@ function present_onoff() {
         new_span.appendChild(new_text);
         present.appendChild(new_span);
         document.getElementsByClassName("video_cam").style.display = 'none';
+        document.getElementById("third").style.display = 'none';
         document.getElementById("screen_sharing").style.display = '';
         sharingStart();
     }
@@ -703,13 +688,48 @@ function present_onoff() {
         new_span.appendChild(new_text);
         present.appendChild(new_span);
         document.getElementsByClassName("video_cam").style.display = '';
+        document.getElementById("third").style.display = '';
         document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
     }
 }
+// 화면공유 기능 on 메서드
+const screen = document.getElementById("screen_sharing");
+async function sharingStart() {
+    try {
+        displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        screen.srcObject = displayStream;
+        if (myPeerConnection) {
+            const displayTrack = displayStream.getVideoTracks()[0];
+            const displaySender = myPeerConnection
+                .getSenders()
+                .find(sender => sender.track.kind === "video");
+            displaySender.replaceTrack(displayTrack);
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+// 화면공유 기능 off 메서드
+function sharingStop() {
+    const stream = screen.srcObject;
+    if (tracks = stream.getTracks()) {
+        tracks.forEach(function (track) {
+            track.stop();
+        });
+    }
+    screen.srcObject = null;
+    if (myPeerConnection) {
+        const prevTrack = myStream.getVideoTracks()[0];
+        const prevSender = myPeerConnection
+            .getSenders()
+            .find(sender => sender.track.kind === "video");
+        prevSender.replaceTrack(prevTrack);
+    }
+}
 
-// mic: on, off 상태 메서드
-function mic_onoff() {
+// 마이크 on, off
+function micOnOff() {
     var mic = document.querySelector("#mic");
     while (mic.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
         mic.removeChild(mic.firstChild);
@@ -736,8 +756,8 @@ function mic_onoff() {
     myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
 }
 
-// video: on, off 상태 메서드
-function video_onoff() {
+// 캠 on, off
+function videoOnOff() {
     var video = document.querySelector("#video");
     while (video.hasChildNodes()) {
         video.removeChild(video.firstChild);
@@ -924,4 +944,62 @@ function sharingStop() {
             .find(sender => sender.track.kind === "video");
         prevSender.replaceTrack(prevTrack);
     }
+}
+// stt 버튼 on, off
+function sttOnOff() {
+    var stt = document.querySelector("#stt");
+    while (stt.hasChildNodes()) {
+        stt.removeChild(stt.firstChild);
+    }
+    // off 상태이면,
+    if (stt.value === "off") {
+        stt.value = "on";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        new_span.setAttribute("value", "on");
+        const new_text = document.createTextNode('speaker_notes');
+        new_span.appendChild(new_text);
+        stt.appendChild(new_span);
+    }
+    // on 상태이면,
+    else {
+        stt.value = "off";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        const new_text = document.createTextNode('speaker_notes_off');
+        new_span.appendChild(new_text);
+        stt.appendChild(new_span);
+    }
+}
+
+// 수화 인식 버튼 on, off
+function slOnOff() {
+    var sl = document.querySelector("#sign_language");
+    while (sl.hasChildNodes()) {
+        sl.removeChild(sl.firstChild);
+    }
+    // off 상태이면,
+    if (sl.value === "off") {
+        sl.value = "on";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        new_span.setAttribute("value", "on");
+        const new_text = document.createTextNode('sign_language');
+        new_span.appendChild(new_text);
+        sl.appendChild(new_span);
+    }
+    // on 상태이면,
+    else {
+        sl.value = "off";
+        const new_span = document.createElement('span');
+        new_span.setAttribute("class", "material-icons");
+        const new_text = document.createTextNode('do_not_touch');
+        new_span.appendChild(new_text);
+        sl.appendChild(new_span);
+    }
+}
+
+// 종료 버튼
+function exitMeeting() {
+    window.location.href = "/"
 }

@@ -1,156 +1,22 @@
-//서버로의 연결
-const socket = new WebSocket(`ws://${window.location.host}`);
-
-// 변수
-const messageList = document.querySelector("ui");
-const messageForm = document.querySelector("form");
-
-//socket이 open되면 로그 출력
-socket.addEventListener("open", () => {
-  console.log("Connected to Server,  ✅ ");
-});
-
-//서버와 연결이 끊어진 경우 로그 출력
-socket.addEventListener("close", () => {
-  console.log("Disconnected from Server, ❌ ");
-});
-
-//서버로부터 받은 메세지 출력
-// socket.addEventListener("message", (message) => {
-//   console.log("New message: ", message.data);
-// });
-
-// function makeMessage(type, payload) {
-//   const msg = { type, payload };
-//   return JSON.stringify(msg);
-// }
-
-socket.addEventListener("message", (message) => {
-  console.log("New message: ", message.data);
-  // const li = document.createElement("li");
-  // li.innerText = message.data;
-  // messageList.append(li);
-});
-
-function handleSubmit(event) {
-  event.preventDefault();
-  const input = messageForm.querySelector("input");
-  // console.log(input.value);
-  socket.send(input.value); // 백엔드로 보내주기
-  input.value = "";
-}
-messageForm.addEventListener("submit", handleSubmit);
+//그 외 기능들
 
 // 현재 시각
-function set_time() {
+function setTime() {
   var time = new Date();
 
   var year = time.getUTCFullYear();
-  var month = time.getUTCMonth() + 1;
-  var day = time.getUTCDate();
-  var ymd = year + '-' + month + '-' + day;
-
-  var hours = time.getHours();
-  var minutes = time.getMinutes();
+  var month = ('0' + (time.getUTCMonth() + 1)).slice(-2);
+  var day = ('0' + time.getUTCDate()).slice(-2);
+  var ymd = month + '/' + day + '/' + year;
+  var hours = ('0' + time.getHours()).slice(-2);
+  var minutes = ('0' + time.getMinutes()).slice(-2);
   var hm = hours + ':' + minutes;
 
   var time_box = document.querySelector(".time_box");
   time_box.innerText = `${ymd}` + ", " + `${hm}`;
 }
-set_time();
-setInterval(set_time, 6000); // 1초 = 1000 => 1분 6000
-
-// present: on, off 상태 메서드
-document.getElementsByClassName("screen_sharing").style.display = 'none';
-function present_onoff() {
-  var present = document.querySelector("#present");
-  while (present.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
-    present.removeChild(present.firstChild);
-  }
-  // off 상태이면,
-  if (present.value === "off") {
-    present.value = "on";
-    const new_span = document.createElement('span');
-    new_span.setAttribute("class", "material-icons");
-    new_span.setAttribute("value", "on");
-    const new_text = document.createTextNode('present_to_all');
-    new_span.appendChild(new_text);
-    present.appendChild(new_span);
-    document.getElementsByClassName("video_cam").style.display = 'none';
-    document.getElementsByClassName("screen_sharing").style.display = '';
-    sharingStart();
-  }
-  // on 상태이면,
-  else {
-    present.value = "off";
-    const new_span = document.createElement('span');
-    new_span.setAttribute("class", "material-icons");
-    const new_text = document.createTextNode('cancel_presentation');
-    new_span.appendChild(new_text);
-    present.appendChild(new_span);
-    document.getElementsByClassName("video_cam").style.display = '';
-    document.getElementsByClassName("screen_sharing").style.display = 'none';
-    sharingStop();
-  }
-}
-
-// mic: on, off 상태 메서드
-function mic_onoff() {
-  var mic = document.querySelector("#mic");
-  while (mic.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
-    mic.removeChild(mic.firstChild);
-  }
-  // off 상태이면,
-  if (mic.value === "off") {
-    mic.value = "on";
-    const new_span = document.createElement('span');
-    new_span.setAttribute("class", "material-icons");
-    new_span.setAttribute("value", "on");
-    const new_text = document.createTextNode('mic');
-    new_span.appendChild(new_text);
-    mic.appendChild(new_span);
-    micStart();
-  }
-  // on 상태이면,
-  else {
-    mic.value = "off";
-    const new_span = document.createElement('span');
-    new_span.setAttribute("class", "material-icons");
-    const new_text = document.createTextNode('mic_off');
-    new_span.appendChild(new_text);
-    mic.appendChild(new_span);
-    micStop();
-  }
-}
-
-// video: on, off 상태 메서드
-function video_onoff() {
-  var video = document.querySelector("#video");
-  while (video.hasChildNodes()) {
-    video.removeChild(video.firstChild);
-  }
-  // off 상태이면,
-  if (video.value === "off") {
-    video.value = "on";
-    const new_span = document.createElement('span');
-    new_span.setAttribute("class", "material-icons");
-    new_span.setAttribute("value", "on");
-    const new_text = document.createTextNode('videocam');
-    new_span.appendChild(new_text);
-    video.appendChild(new_span);
-    cameraStart();
-  }
-  // on 상태이면,
-  else {
-    video.value = "off";
-    const new_span = document.createElement('span');
-    new_span.setAttribute("class", "material-icons");
-    const new_text = document.createTextNode('videocam_off');
-    new_span.appendChild(new_text);
-    video.appendChild(new_span);
-    cameraStop();
-  }
-}
+setTime();
+setInterval(setTime, 6000); // 1초 = 1000 => 1분 6000
 
 function onResults(results) {
   canvasCtx.save();
@@ -236,9 +102,14 @@ function sharingStop() {
   const tracks = stream.getTracks();
   tracks.forEach(function(track) {
     track.stop();
+// 회의 코드 복사 기능
+function copyCode() {
+  const code = document.querySelector(".join_code");
+
+  window.navigator.clipboard.writeText(code.textContent).then(() => {
+    alert('회의 코드 복사 완료!');
   });
-  screen.srcObject = null;
-}
+};
 
 // 카메라 on 메서드
 const videoCam = document.querySelector(".video_cam");
@@ -260,28 +131,19 @@ function cameraStop() {
   });
   videoCam.srcObject = null;
 }
+// 채팅창 스크롤 최하단 이동
+let chatForm = document.querySelector('.chat_form');
 
-// 마이크 on 메서드
-const audio = document.querySelector("#mic");
-function micStart() {
-  navigator.mediaDevices.getUserMedia({video: false, audio : true}).then(function(stream){
-      audio.srcObject = stream;
-    })
-    .catch(function(error){
-    console.error("마이크에 문제 있음", error);
-  })
+function prepareScroll() {
+  window.setTimeout(scrollUl, 50);
 }
-// 마이크 off 메서드
-function micStop() {
-  const stream = audio.srcObject;
-  const tracks = stream.getTracks();
-  tracks.forEach(function(track) {
-    track.stop();
-  });
-  audio.srcObject = null;
-}
+function scrollUl() { 
+  let chatUl = document.querySelector('.chat_ul');
+  let h = chatUl.lastChild.offsetHeight; // 새로 추가된 li(가장 마지막 채팅)의 높이
+  // console.log(`h값: ${h}`); 
 
-// 종료 버튼
-function exit_meeting() {
-  window.location.href = "/"
+  // console.log(chatUl.scrollTop); // 현재 스크롤의 위치, 내리지 않았을 경우 0 (최상단)
+  // console.log(chatUl.scrollHeight); // 스크롤의 전체 길이
+  chatUl.scrollTop = chatUl.scrollHeight + h; // 스크롤의 위치를 최하단으로
 }
+chatForm.addEventListener('submit', prepareScroll);
