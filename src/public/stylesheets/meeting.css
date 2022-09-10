@@ -38,31 +38,19 @@
   border-radius: 10px;
 }
 
-/* .main #video_cam {
-}
-.main #peers_cam {
-  width: 48%;
-  height: 48%;
-  border: 1px solid red;
-}
-
-.main #third {
-  width: 48%;
-  height: 48%;
-  border: 1px solid red;
-}
-.main #fourth {
-  width: 48%;
-  height: 48%;
-  border: 1px solid red;
-} */
-
-
-.main #screen_sharing {
+/* .main #screen_sharing {
   width: 48%;
   height: 48%;
   border: 1px solid var(--hear-blue);
+} */
+
+.full {
+  width: 98%;
+  height: 98%;
+  border: 1px solid #8ba3b5;
+  border-radius: 10px;
 }
+
 .main .chatting {
   width: 20%;
   height: 98%;
