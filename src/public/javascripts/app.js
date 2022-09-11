@@ -929,9 +929,8 @@ function onResults(results) {
         var angle = [];
 
         for (let i = 0; i < v_inner.length; i++){
-            angle.push(Math.acos(v_inner[i]));
+            angle.push(Math.acos(v_inner[i]) * (180 / Math.PI));
         }
-        console.log(angle);
         var ans = knn.predict(angle);
         console.log(ans);
 
@@ -939,7 +938,6 @@ function onResults(results) {
   }
   canvasCtx.restore();
 }
-
 
 // 수화 인식: on, off 상태 메서드
 function sl_onoff() {
@@ -995,7 +993,7 @@ function sl_onoff() {
 }
 
 // 화면공유 on 메서드
-const screen = document.getElementById("screen_sharing");
+//const screen = document.getElementById("screen_sharing");
 async function sharingStart() {
     try {
         displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -1052,33 +1050,6 @@ function sttOnOff() {
         const new_text = document.createTextNode('speaker_notes_off');
         new_span.appendChild(new_text);
         stt.appendChild(new_span);
-    }
-}
-
-// 수화 인식 버튼 on, off
-function slOnOff() {
-    var sl = document.querySelector("#sign_language");
-    while (sl.hasChildNodes()) {
-        sl.removeChild(sl.firstChild);
-    }
-    // off 상태이면,
-    if (sl.value === "off") {
-        sl.value = "on";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        new_span.setAttribute("value", "on");
-        const new_text = document.createTextNode('sign_language');
-        new_span.appendChild(new_text);
-        sl.appendChild(new_span);
-    }
-    // on 상태이면,
-    else {
-        sl.value = "off";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        const new_text = document.createTextNode('do_not_touch');
-        new_span.appendChild(new_text);
-        sl.appendChild(new_span);
     }
 }
 
