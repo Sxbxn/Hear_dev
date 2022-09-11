@@ -83,7 +83,6 @@ function sl_onoff() {
     new_span.appendChild(new_text);
     sl.appendChild(new_span);
   }
-  */
 }
 
 // 화면공유 on 메서드

@@ -931,7 +931,7 @@ function onResults(results) {
         for (let i = 0; i < v_inner.length; i++){
             angle.push(Math.acos(v_inner[i]));
         }
-
+        console.log(angle);
         var ans = knn.predict(angle);
         console.log(ans);
 
