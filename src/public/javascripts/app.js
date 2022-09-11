@@ -9,7 +9,9 @@ const socket = io();
 const messageList = document.querySelector("ul");
 const messageForm = document.querySelector("form");
 
-const videoCam = document.querySelector(".video_cam");
+const videoCam = document.querySelector("#video_cam");
+const canvasElement = document.querySelector('#output_canvas');
+
 const peersCam = document.querySelector("#peers_cam");
 const screen = document.getElementById("screen_sharing");
 
@@ -18,9 +20,8 @@ const audio = document.querySelector("#mic");
 const camerasSelect = document.getElementById("cameras");
 const audiosSelect = document.getElementById("audios");
 
-const camElement = document.getElementsByClassName("video_cam")[0];
-const canvasElement = document.getElementsByClassName('output_canvas')[0];
-canvasElement.style.display = 'none';
+// const camElement = document.getElementsByClassName("video_cam")[0];
+// const canvasElement = document.getElementsByClassName('output_canvas')[0];
 const canvasCtx = canvasElement.getContext('2d');
 
 let myStream;
@@ -28,7 +29,6 @@ let displayStream;
 let roomName = "abcd-123";
 let myPeerConnection;
 let myDataChannel;
-
 
 function squaredEuclidean(p, q) {
     let d = 0;
@@ -40,8 +40,6 @@ function squaredEuclidean(p, q) {
 function euclideanDistance(p, q) {
     return Math.sqrt(squaredEuclidean(p, q));
 }
-
-
 
 class KNN {
   /**
@@ -445,8 +443,6 @@ class BinaryHeap {
   }
 }
 
-
-
 let content = null;
 let xmlhttp = new XMLHttpRequest();
 xmlhttp.open("GET", "/public/raw/dataSet.txt", false);
@@ -537,38 +533,6 @@ async function getMedia(deviceId, kind) {
         console.log(e);
     }
 }
-
-
-/* 장치 설정 부분
-// 캠 변경
-async function handleCameraChange() {
-    await getMedia(camerasSelect.value, 'camera');
-    if (myPeerConnection) {
-        const videoTrack = myStream.getVideoTracks()[0];
-        const videoSender = myPeerConnection
-            .getSenders()
-            .find(sender => sender.track.kind === "video");
-        videoSender.replaceTrack(videoTrack);
-    }
-}
-
-// 오디오 변경
-async function handleAudioChange() {
-    await getMedia(audiosSelect.value, 'audio');
-    if (myPeerConnection) {
-        const audioTrack = myStream.getAudioTracks()[0];
-        const audioSender = myPeerConnection
-            .getSenders()
-            .find(sender => sender.track.kind === "audio");
-        audioSender.replaceTrack(audioTrack);
-    }
-}
-
-
-// 버튼 리스너 => onclick 메소드로 바꼈으니까 ... 흠 일단
-camerasSelect.addEventListener("input", handleCameraChange);
-audiosSelect.addEventListener("input", handleAudioChange);
-*/
 
 async function initCall() {
     await getMedia();
@@ -691,6 +655,17 @@ screen.addEventListener('click', function () {
         minScreen(screen);
     }
 });
+canvasElement.addEventListener('click', function () {
+  if (canvasElement.getAttribute('class') == "min") {
+    canvasElement.setAttribute('class', 'max');
+      maxScreen(canvasElement);
+  }
+  else {
+    canvasElement.setAttribute('class', 'min');
+      minScreen(canvasElement);
+  }
+  
+});
 
 // 화면 확대
 function maxScreen(clickVideo) {
@@ -700,12 +675,42 @@ function maxScreen(clickVideo) {
     const cam = document.querySelector(".cam");
 
     let childCam = cam.childNodes;
+    let checkingCanvas = 0;
+
+    for(var i = 0; i < childCam.length; i++) {
+      let childTag = childCam[i];
+      if (childTag.nodeName == "CANVAS") {
+        if (childTag.style.display = 'none') {
+          checkingCanvas = 0;
+        }
+        else {
+          checkingCanvas = 1;
+        }
+      }
+    }
+
     for(var i = 0; i < childCam.length; i++) {
         let childTag = childCam[i];
 
-        if (childTag.nodeName == "VIDEO") {
+        if (checkingCanvas == 0) {
+          if (childTag.nodeName == "VIDEO") {
             childTag.style.display = 'none';
+          }  
+          // if (childTag.nodeName == "CANVAS") {
+          //   childTag.style.display = 'none';
+          // }
+        } else {
+            canvasElement.style.display = 'none';
+            if (childTag.nodeName == "VIDEO") {
+              childTag.style.display = 'none';
+            }
+  
+            if (childTag.nodeName == "CANVAS") {
+              childTag.style.display = 'none';
+            }
         }
+
+        
     }
     let fullCam = document.getElementById(`${cv}`);
     fullCam.style.display = '';
@@ -724,11 +729,42 @@ function minScreen(clickVideo) {
     const cam = document.querySelector(".cam");
 
     let childCam = cam.childNodes;
+    let checkingCanvas = 0;
+
+    for(var i = 0; i < childCam.length; i++) {
+      let childTag = childCam[i];
+      if (childTag.nodeName == "CANVAS") {
+        if (childTag.style.display = 'none') {
+          checkingCanvas = 0;
+        }
+        else {
+          checkingCanvas = 1;
+        }
+      }
+    }
+    // console.log(checkingCanvas);
+
     for(var i = 0; i < childCam.length; i++) {
         let childTag = childCam[i];
-
+        
         if (childTag.nodeName == "VIDEO") {
+          if (childTag.id == 'video_cam') {
+            if (checkingCanvas == 0) {
+              childTag.style.display = '';
+            } else {
+              childTag.style.display = 'none';
+            }
+            
+          }
+          else {
             childTag.style.display = '';
+          }
+        }
+
+        if (childTag.nodeName == "CANVAS") {
+          if (childTag.style.display != 'inline') {
+            childTag.style.display = 'none';
+          }
         }
     }
     let beforeCam = document.getElementById(`${cv}`);
@@ -754,9 +790,7 @@ function presentOnOff() {
         const new_text = document.createTextNode('present_to_all');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementsByClassName("video_cam").style.display = 'none';
-        document.getElementById("third").style.display = 'none';
-        document.getElementById("screen_sharing").style.display = '';
+        // document.getElementsByClassName("video_cam").style.display = 'none';
         // document.getElementById("third").style.display = 'none';
         // document.getElementById("screen_sharing").style.display = '';
         sharingStart();
@@ -769,9 +803,7 @@ function presentOnOff() {
         const new_text = document.createTextNode('cancel_presentation');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
-        document.getElementsByClassName("video_cam").style.display = '';
-        document.getElementById("third").style.display = '';
-        document.getElementById("screen_sharing").style.display = 'none';
+        // document.getElementsByClassName("video_cam").style.display = '';
         // document.getElementById("third").style.display = '';
         // document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
@@ -867,6 +899,7 @@ function videoOnOff() {
     myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
 }
 
+// 수화 인식 결과 메서드
 function onResults(results) {
   canvasElement.style.display = 'inline';
   canvasCtx.save();
@@ -939,8 +972,12 @@ function onResults(results) {
   canvasCtx.restore();
 }
 
-// 수화 인식: on, off 상태 메서드
-function sl_onoff() {
+// 수화 인식 on, off
+canvasElement.style.display = 'none';
+
+function slOnOff() {
+  // console.log(camElement);
+  console.log(videoCam);
   var sl = document.querySelector("#sign_language");
   while (sl.hasChildNodes()) {
     sl.removeChild(sl.firstChild);
@@ -955,7 +992,7 @@ function sl_onoff() {
     new_span.appendChild(new_text);
     sl.appendChild(new_span);
 
-    camElement.style.display = 'none';
+    videoCam.style.display = 'none';
 
     const hands = new Hands({locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
@@ -969,9 +1006,9 @@ function sl_onoff() {
     });
     hands.onResults(onResults);
 
-    const camera = new Camera(camElement, {
+    const camera = new Camera(videoCam, {
         onFrame: async () => {
-        await hands.send({image: camElement});
+        await hands.send({image: videoCam});
     },
         width: 782,
         height: 795
@@ -981,51 +1018,16 @@ function sl_onoff() {
   // on 상태이면,
   else {
     sl.value = "off";
-    camElement.style.display = 'inline';
     canvasElement.style.display = 'none';
+    videoCam.style.display = '';
     const new_span = document.createElement('span');
     new_span.setAttribute("class", "material-icons");
     const new_text = document.createTextNode('do_not_touch');
     new_span.appendChild(new_text);
     sl.appendChild(new_span);
-
   }
 }
 
-// 화면공유 on 메서드
-//const screen = document.getElementById("screen_sharing");
-async function sharingStart() {
-    try {
-        displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        screen.srcObject = displayStream;
-        if (myPeerConnection) {
-            const displayTrack = displayStream.getVideoTracks()[0];
-            const displaySender = myPeerConnection
-                .getSenders()
-                .find(sender => sender.track.kind === "video");
-            displaySender.replaceTrack(displayTrack);
-        }
-    } catch (e) {
-        console.log(e);
-    }
-}
-// 화면공유 off 메서드
-function sharingStop() {
-    const stream = screen.srcObject;
-    if (tracks = stream.getTracks()) {
-        tracks.forEach(function (track) {
-            track.stop();
-        });
-    }
-    screen.srcObject = null;
-    if (myPeerConnection) {
-        const prevTrack = myStream.getVideoTracks()[0];
-        const prevSender = myPeerConnection
-            .getSenders()
-            .find(sender => sender.track.kind === "video");
-        prevSender.replaceTrack(prevTrack);
-    }
-}
 // stt 버튼 on, off
 function sttOnOff() {
     var stt = document.querySelector("#stt");

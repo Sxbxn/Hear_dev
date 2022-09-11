@@ -39,8 +39,8 @@
 
         <!-- 비디오 화면 구역 -->
         <div class="cam">
-          <video class="video_cam" autoplay playsinline class="min"></video>
-          <canvas class="output_canvas" width="782px" height="795px"></canvas>
+          <video id="video_cam" autoplay playsinline class="min"></video>
+          <canvas id="output_canvas" class="min"></canvas>
           <video id="peers_cam" autoplay playsinline class="min"></video>
           <video id="screen_sharing" autoplay playsinline class="min"></video>
           <video id="fourth" class="min"></video>
@@ -89,7 +89,7 @@
             <span class="material-icons">speaker_notes_off</span>
           </button>
 
-          <button id="sign_language" value="off" onclick="sl_onoff()">
+          <button id="sign_language" value="off" onclick="slOnOff()">
             <span class="material-icons">do_not_touch</span>        
           </button>
 

@@ -38,6 +38,15 @@
   border-radius: 10px;
 }
 
+.main canvas {
+  width: 48%;
+  height: 48%;
+  border: 1px solid #8ba3b5;
+  margin-left: 7px;
+  padding: auto;
+  border-radius: 10px;
+}
+
 /* .main #screen_sharing {
   width: 48%;
   height: 48%;
