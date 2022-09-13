@@ -43,6 +43,7 @@ let consonant_vowel_list = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ',
 
 let sentence = "";
 let preWord = "";
+let merge_sentence = "";
 let myStream;
 let displayStream;
 let roomName = "abcd-123";
@@ -655,6 +656,7 @@ function handleSubmit(event) {
     input.value = "";
 }
 
+
 // 각 화면 확대·축소 클릭 이벤트
 videoCam.addEventListener('click', function () {
     if (videoCam.getAttribute('class') == "min") {
@@ -1006,28 +1008,26 @@ function onResults(results) {
            count++;
         }
 
-        if (count >= 15){
+        if (count >= 10 && word == 'clear'){
+           sentence = "";
+        }
+
+        if (count >= 10){
            sentence += word;
            preWord = word;
            count = 0;
            var merge_sentence = Hangul.assemble(sentence);
            console.log(merge_sentence);
+           /*
+           myDataChannel.send(merge_sentence);
+           const li = document.createElement("li");
+           li.innerText = "myID : " + merge_sentence;
+           messageList.append(li);
+           */
         }
 
         if (preWord != word){
             preWord = word;
-        }
-
-
-        else if (preWord != word && count >= 15){
-           sentence += preWord;
-           preWord = word;
-           count = 0;
-           var merge_sentence = Hangul.assemble(sentence);
-           console.log(merge_sentence);
-        }
-        else if (preWord != word && count <= 15){
-           count++;
         }
     }
   }
