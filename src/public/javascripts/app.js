@@ -35,6 +35,19 @@ roominfo.innerText = roomName;
 localStorage.clear();
 
 
+const hands = new Hands({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+}});
+
+const camera = new Camera(videoCam, {
+        onFrame: async () => {
+        await hands.send({image: videoCam});
+    },
+        width: 782,
+        height: 795
+});
+
+
 function squaredEuclidean(p, q) {
     let d = 0;
     for (let i = 0; i < p.length; i++) {
@@ -970,7 +983,6 @@ function videoOnOff() {
 
 // 수화 인식 결과 메서드
 function onResults(results) {
-  canvasElement.style.display = 'inline';
   canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   canvasCtx.drawImage(
@@ -1045,7 +1057,6 @@ function onResults(results) {
 canvasElement.style.display = 'none';
 
 function slOnOff() {
-  // console.log(camElement);
   console.log(videoCam);
   var sl = document.querySelector("#sign_language");
   while (sl.hasChildNodes()) {
@@ -1053,6 +1064,7 @@ function slOnOff() {
   }
   // off 상태이면,
   if (sl.value === "off") {
+    canvasElement.style.display = 'inline';
     sl.value = "on";
     const new_span = document.createElement('span');
     new_span.setAttribute("class", "material-icons");
@@ -1063,10 +1075,6 @@ function slOnOff() {
 
     videoCam.style.display = 'none';
 
-    const hands = new Hands({locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-    }});
-
     hands.setOptions({
         maxNumHands: 2,
         minDetectionConfidence: 0.5,
@@ -1074,20 +1082,14 @@ function slOnOff() {
         modelComplexity: 1
     });
     hands.onResults(onResults);
-
-    const camera = new Camera(videoCam, {
-        onFrame: async () => {
-        await hands.send({image: videoCam});
-    },
-        width: 782,
-        height: 795
-    });
     camera.start();
   }
   // on 상태이면,
   else {
-    sl.value = "off";
     canvasElement.style.display = 'none';
+    console.log("in");
+    camera.stop();
+    sl.value = "off";
     videoCam.style.display = '';
     const new_span = document.createElement('span');
     new_span.setAttribute("class", "material-icons");
