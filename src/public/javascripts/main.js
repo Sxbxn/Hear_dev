@@ -46,7 +46,10 @@ function startMeeting() {
       showBtn(nickname);
     }
   } else {
-    roomName = (Math.floor(Math.random() * 1000000)).toString();
+    const head = (Math.floor(Math.random() * 10000) + 1000).toString();
+    const center = (Math.floor(Math.random() * 10000) + 1000).toString();
+    const tail = (Math.floor(Math.random() * 10000) +1000).toString();
+    roomName = head + '-' + center + '-' + tail;
     socket.emit("enter_code", roomName);
     socket.on("enter_code", result => {
       if (!result) {

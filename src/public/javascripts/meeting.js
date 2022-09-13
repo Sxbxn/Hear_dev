@@ -42,3 +42,8 @@ function scrollUl() {
   chatUl.scrollTop = chatUl.scrollHeight + h; // 스크롤의 위치를 최하단으로
 }
 chatForm.addEventListener('submit', prepareScroll);
+
+window.addEventListener('beforeunload', (event) => {
+  event.preventDefault();
+  event.returnValue = '';
+});

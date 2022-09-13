@@ -1,0 +1,33 @@
+[1mdiff --git a/src/public/javascripts/main.js b/src/public/javascripts/main.js[m
+[1mindex c21d736..d530eaf 100644[m
+[1m--- a/src/public/javascripts/main.js[m
+[1m+++ b/src/public/javascripts/main.js[m
+[36m@@ -46,7 +46,10 @@[m [mfunction startMeeting() {[m
+       showBtn(nickname);[m
+     }[m
+   } else {[m
+[31m-    roomName = (Math.floor(Math.random() * 1000000)).toString();[m
+[32m+[m[32m    const head = (Math.floor(Math.random() * 10000) + 1000).toString();[m
+[32m+[m[32m    const center = (Math.floor(Math.random() * 10000) + 1000).toString();[m
+[32m+[m[32m    const tail = (Math.floor(Math.random() * 10000) +1000).toString();[m
+[32m+[m[32m    roomName = head + '-' + center + '-' + tail;[m
+     socket.emit("enter_code", roomName);[m
+     socket.on("enter_code", result => {[m
+       if (!result) {[m
+[1mdiff --git a/src/public/javascripts/meeting.js b/src/public/javascripts/meeting.js[m
+[1mindex 5417f34..01b2000 100644[m
+[1m--- a/src/public/javascripts/meeting.js[m
+[1m+++ b/src/public/javascripts/meeting.js[m
+[36m@@ -41,4 +41,9 @@[m [mfunction scrollUl() {[m
+   // console.log(chatUl.scrollHeight); // 스크롤의 전체 길이[m
+   chatUl.scrollTop = chatUl.scrollHeight + h; // 스크롤의 위치를 최하단으로[m
+ }[m
+[31m-chatForm.addEventListener('submit', prepareScroll);[m
+\ No newline at end of file[m
+[32m+[m[32mchatForm.addEventListener('submit', prepareScroll);[m
+[32m+[m
+[32m+[m[32mwindow.addEventListener('beforeunload', (event) => {[m
+[32m+[m[32m  event.preventDefault();[m
+[32m+[m[32m  event.returnValue = '';[m
+[32m+[m[32m});[m
+\ No newline at end of file[m
