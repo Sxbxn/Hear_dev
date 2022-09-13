@@ -20,11 +20,32 @@ const audio = document.querySelector("#mic");
 // const camElement = document.getElementsByClassName("video_cam")[0];
 // const canvasElement = document.getElementsByClassName('output_canvas')[0];
 const canvasCtx = canvasElement.getContext('2d');
+let consonant_vowel = {
+    0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h',
+    8: 'i', 9: 'j', 10: 'k', 11: 'l', 12: 'm', 13: 'n', 14: 'o',
+    15: 'p', 16: 'q', 17: 'r', 18: 's', 19: 't', 20: 'u', 21: 'v',
+    22: 'w', 23: 'x', 24: 'y', 25: 'z', 26: 'spacing', 27: 'clear',
+    28: 'ㄱ', 29: 'ㄴ', 30: 'ㄷ', 31: 'ㄹ', 32: 'ㅁ', 33: 'ㅂ', 34: 'ㅅ', 35: 'ㅇ',
+    36: 'ㅈ', 37: 'ㅊ', 38: 'ㅋ', 39: 'ㅌ', 40: 'ㅍ', 41: 'ㅎ', 42: '된소리',
+    43: 'ㅏ', 44: 'ㅑ', 45: 'ㅓ', 46: 'ㅕ', 47: 'ㅗ', 48: 'ㅛ', 49: 'ㅜ',
+    50: 'ㅠ', 51: 'ㅡ', 52: 'ㅣ', 53: 'ㅐ', 54: 'ㅔ', 55: 'ㅚ', 56: 'ㅟ',
+    57: 'ㅚ', 58: 'ㅒ', 59: 'ㅖ', 60: 'ㅢ'
+};
 
+let consonant_vowel_list = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ',
+                            'ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','된소리','ㅏ',
+                            'ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ',
+                            'ㅣ','ㅐ','ㅔ','ㅚ','ㅟ','ㅚ','ㅒ','ㅢ',];
+
+
+let sentence = "";
+let preWord = "";
+let merge_sentence = "";
 let myStream;
 let displayStream;
 let myPeerConnection;
 let myDataChannel;
+let count = 0;
 let recognition;
 
 const infoString = localStorage.getItem('info');
@@ -692,6 +713,7 @@ function handleSubmit(event) {
     input.value = "";
 }
 
+
 // 각 화면 확대·축소 클릭 이벤트
 videoCam.addEventListener('click', function () {
     if (videoCam.getAttribute('class') == "min") {
@@ -991,8 +1013,8 @@ function onResults(results) {
     var i = 0
     for (const landmarks of results.multiHandLandmarks) {
         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
-                      {color: '#00FF00', lineWidth: 5});
-        drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+                      {color: '#00FF00', lineWidth: 2});
+        drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
 
         const v = [[landmarks[1]['x'] - landmarks[0]['x'], landmarks[1]['y'] - landmarks[0]['y'], landmarks[1]['z'] - landmarks[0]['z']],
                    [landmarks[2]['x'] - landmarks[1]['x'], landmarks[2]['y'] - landmarks[1]['y'], landmarks[2]['z'] - landmarks[1]['z']],
@@ -1046,8 +1068,35 @@ function onResults(results) {
             angle.push(Math.acos(v_inner[i]) * (180 / Math.PI));
         }
         var ans = knn.predict(angle);
-        console.log(ans);
+        word = consonant_vowel[parseInt(ans)];
 
+        if (preWord == ""){
+            preWord = word;
+        }
+
+        if (preWord == word){
+           count++;
+        }
+
+        if (count >= 10 && word == 'clear'){
+           sentence = "";
+        }
+
+        if (count >= 10){
+           sentence += word;
+           preWord = word;
+           count = 0;
+           var merge_sentence = Hangul.assemble(sentence);
+           console.log(merge_sentence);
+           myDataChannel.send(merge_sentence);
+           const li = document.createElement("li");
+           li.innerText = "myID : " + merge_sentence;
+           messageList.append(li);
+        }
+
+        if (preWord != word){
+            preWord = word;
+        }
     }
   }
   canvasCtx.restore();
@@ -1057,7 +1106,6 @@ function onResults(results) {
 canvasElement.style.display = 'none';
 
 function slOnOff() {
-  console.log(videoCam);
   var sl = document.querySelector("#sign_language");
   while (sl.hasChildNodes()) {
     sl.removeChild(sl.firstChild);
