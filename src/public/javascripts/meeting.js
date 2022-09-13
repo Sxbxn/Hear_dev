@@ -1,23 +1,21 @@
-//그 외 기능들
-
 // 현재 시각
-function setTime() {
+function set_time() {
   var time = new Date();
 
   var year = time.getUTCFullYear();
-  var month = ('0' + (time.getUTCMonth() + 1)).slice(-2);
-  var day = ('0' + time.getUTCDate()).slice(-2);
-  var ymd = month + '/' + day + '/' + year;
-
-  var hours = ('0' + time.getHours()).slice(-2);
-  var minutes = ('0' + time.getMinutes()).slice(-2);
+  var month = time.getUTCMonth() + 1;
+  var day = time.getUTCDate();
+  var ymd = year + '-' + month + '-' + day;
+    
+  var hours = time.getHours();
+  var minutes = time.getMinutes();
   var hm = hours + ':' + minutes;
-
+    
   var time_box = document.querySelector(".time_box");
-  time_box.innerText = `${ymd}` + ", " + `${hm}`;
+  time_box.innerText = `${ymd}` + ", " + `${hm}`; 
 }
-setTime();
-setInterval(setTime, 6000); // 1초 = 1000 => 1분 6000
+set_time();
+setInterval(set_time, 6000); // 1초 = 1000 => 1분 6000
 
 // 회의 코드 복사 기능
 function copyCode() {

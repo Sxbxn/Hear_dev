@@ -5,20 +5,17 @@
 
 const socket = io();
 
-//변수
 const messageList = document.querySelector("ul");
-const messageForm = document.querySelector("form");
-
+const messageForm = document.querySelector(".chat_form");
+const roominfo = document.querySelector(".join_code");
 const videoCam = document.querySelector("#video_cam");
 const canvasElement = document.querySelector('#output_canvas');
 
 const peersCam = document.querySelector("#peers_cam");
 const screen = document.getElementById("screen_sharing");
-
 const audio = document.querySelector("#mic");
-
-const camerasSelect = document.getElementById("cameras");
-const audiosSelect = document.getElementById("audios");
+//const camerasSelect = document.getElementById("cameras");
+//const audiosSelect = document.getElementById("audios");
 
 // const camElement = document.getElementsByClassName("video_cam")[0];
 // const canvasElement = document.getElementsByClassName('output_canvas')[0];
@@ -26,9 +23,17 @@ const canvasCtx = canvasElement.getContext('2d');
 
 let myStream;
 let displayStream;
-let roomName = "abcd-123";
 let myPeerConnection;
 let myDataChannel;
+let recognition;
+
+const infoString = localStorage.getItem('info');
+const info = JSON.parse(infoString);
+const nickname = info.nickname;
+const roomName = info.roomName;
+roominfo.innerText = roomName;
+localStorage.clear();
+
 
 const hands = new Hands({locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
@@ -521,7 +526,7 @@ async function getAudios() {
 // 장치 가져오기 (defult = audio 기본, video = 셀캠)
 async function getMedia(deviceId, kind) {
     let audioConstraints = true;
-    let cameraConstraints = { facingMode: "user" };
+    let cameraConstraints = { facingMode: 'user' };
     if (deviceId) {
         if (kind === 'audio') {
             audioConstraints = { deviceId: { exact: deviceId } };
@@ -546,59 +551,36 @@ async function getMedia(deviceId, kind) {
         console.log(e);
     }
 }
-
-async function initCall() {
-    await getMedia();
-    makeConnection();
-    socket.emit("join_room", "abcd-123");
+/* 장치 설정 부분
+// 캠 변경
+async function handleCameraChange() {
+    await getMedia(camerasSelect.value, 'camera');
+    if (myPeerConnection) {
+        const videoTrack = myStream.getVideoTracks()[0];
+        const videoSender = myPeerConnection
+            .getSenders()
+            .find(sender => sender.track.kind === "video");
+        videoSender.replaceTrack(videoTrack);
+    }
 }
 
-// 페이지 들어옴 !
-initCall();
+// 오디오 변경
+async function handleAudioChange() {
+    await getMedia(audiosSelect.value, 'audio');
+    if (myPeerConnection) {
+        const audioTrack = myStream.getAudioTracks()[0];
+        const audioSender = myPeerConnection
+            .getSenders()
+            .find(sender => sender.track.kind === "audio");
+        audioSender.replaceTrack(audioTrack);
+    }
+}
 
-//
 
-// Socket Code
-socket.on("welcome", async () => {
-    myDataChannel = myPeerConnection.createDataChannel("chat");
-    messageForm.addEventListener("submit", handleSubmit);
-    myDataChannel.addEventListener("message", (event) => {
-        const li = document.createElement("li");
-        li.innerText = "yourID : " + event.data;
-        messageList.append(li);
-    });
-    const offer = await myPeerConnection.createOffer();
-    myPeerConnection.setLocalDescription(offer);
-    socket.emit("offer", offer, roomName);
-    console.log("send offer");
-});
-
-socket.on("offer", async (offer) => {
-    console.log("recive offer");
-    myPeerConnection.addEventListener("datachannel", (event) => {
-        myDataChannel = event.channel;
-        messageForm.addEventListener("submit", handleSubmit);
-        myDataChannel.addEventListener("message", (event) => {
-            const li = document.createElement("li");
-            li.innerText = "yourID : " + event.data;
-            messageList.append(li);
-        });
-    });
-    myPeerConnection.setRemoteDescription(offer);
-    const answer = await myPeerConnection.createAnswer();
-    myPeerConnection.setLocalDescription(answer);
-    socket.emit("answer", answer, roomName);
-    console.log("send answer");
-});
-
-socket.on("answer", answer => {
-    console.log("recive answer");
-    myPeerConnection.setRemoteDescription(answer);
-});
-
-socket.on("ice", ice => {
-    myPeerConnection.addIceCandidate(ice);
-});
+// 장치 변경
+camerasSelect.addEventListener("input", handleCameraChange);
+audiosSelect.addEventListener("input", handleAudioChange);
+*/
 
 // RTC Code
 const peerConnectionConfig = {
@@ -626,12 +608,86 @@ function handleAddStream(data) {
     peersCam.srcObject = data.stream;
 }
 
+function startSTT() {
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    if (!recognition) {
+        alert("no stt");
+    }
+    recognition.interimResults = true;
+    recognition.lang = "ko-KR";
+    recognition.continuous = true;
+    recognition.maxAlternatives = 5000;
+
+    recognition.addEventListener('result', (event) => {
+        const transcript = event.results[event.resultIndex][0].transcript;
+
+        if (event.results[event.resultIndex].isFinal) {
+            myDataChannel.send(nickname+" : " + transcript);
+            const li = document.createElement("li");
+            li.innerText = nickname+" : " + transcript;
+            messageList.append(li);
+        }
+    });
+}
+
+async function initCall() {
+    await getMedia();
+    makeConnection();
+    startSTT();
+    socket.emit("join_room", roomName);
+}
+
+initCall();
+
+// Socket Code
+socket.on("welcome", async () => {
+    myDataChannel = myPeerConnection.createDataChannel("chat");
+    messageForm.addEventListener("submit", handleSubmit);
+    myDataChannel.addEventListener("message", (event) => {
+        const li = document.createElement("li");
+        li.innerText = event.data;
+        messageList.append(li);
+    });
+    const offer = await myPeerConnection.createOffer();
+    myPeerConnection.setLocalDescription(offer);
+    socket.emit("offer", offer, roomName);
+    console.log("send offer");
+});
+
+socket.on("offer", async (offer) => {
+    console.log("recive offer");
+    myPeerConnection.addEventListener("datachannel", (event) => {
+        myDataChannel = event.channel;
+        messageForm.addEventListener("submit", handleSubmit);
+        myDataChannel.addEventListener("message", (event) => {
+            const li = document.createElement("li");
+            li.innerText = event.data;
+            messageList.append(li);
+        });
+    });
+    myPeerConnection.setRemoteDescription(offer);
+    const answer = await myPeerConnection.createAnswer();
+    myPeerConnection.setLocalDescription(answer);
+    socket.emit("answer", answer, roomName);
+    console.log("send answer");
+});
+
+socket.on("answer", answer => {
+    console.log("recive answer");
+    myPeerConnection.setRemoteDescription(answer);
+});
+
+socket.on("ice", ice => {
+    myPeerConnection.addIceCandidate(ice);
+});
+
 function handleSubmit(event) {
     event.preventDefault();
     const input = messageForm.querySelector("input");
-    myDataChannel.send(input.value);
+    myDataChannel.send(nickname+" : " + input.value);
     const li = document.createElement("li");
-    li.innerText = "myID : " + input.value;
+    li.innerText = nickname+" : " + input.value;
     messageList.append(li);
     input.value = "";
 }
@@ -859,6 +915,7 @@ function sharingStop() {
 // 마이크 on, off
 function micOnOff() {
     var mic = document.querySelector("#mic");
+    var stt = document.querySelector("#stt");
     while (mic.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
         mic.removeChild(mic.firstChild);
     }
@@ -880,6 +937,18 @@ function micOnOff() {
         const new_text = document.createTextNode('mic_off');
         new_span.appendChild(new_text);
         mic.appendChild(new_span);
+        if (stt.value === "on") {
+            while (stt.hasChildNodes()) {
+                stt.removeChild(stt.firstChild);
+            }
+            stt.value = "off";
+            const new_span = document.createElement('span');
+            new_span.setAttribute("class", "material-icons");
+            const new_text = document.createTextNode('speaker_notes_off');
+            new_span.appendChild(new_text);
+            stt.appendChild(new_span);
+            recognition.stop();
+        }
     }
     myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
 }
@@ -1036,18 +1105,30 @@ function sttOnOff() {
     while (stt.hasChildNodes()) {
         stt.removeChild(stt.firstChild);
     }
-    // off 상태이면,
-    if (stt.value === "off") {
-        stt.value = "on";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        new_span.setAttribute("value", "on");
-        const new_text = document.createTextNode('speaker_notes');
-        new_span.appendChild(new_text);
-        stt.appendChild(new_span);
-    }
-    // on 상태이면,
-    else {
+    if (mic.value === "on") {
+        // off 상태이면,
+        if (stt.value === "off") {
+            stt.value = "on";
+            const new_span = document.createElement('span');
+            new_span.setAttribute("class", "material-icons");
+            new_span.setAttribute("value", "on");
+            const new_text = document.createTextNode('speaker_notes');
+            new_span.appendChild(new_text);
+            stt.appendChild(new_span);
+            recognition.start();
+        }
+        // on 상태이면,
+        else {
+            stt.value = "off";
+            const new_span = document.createElement('span');
+            new_span.setAttribute("class", "material-icons");
+            const new_text = document.createTextNode('speaker_notes_off');
+            new_span.appendChild(new_text);
+            stt.appendChild(new_span);
+            recognition.stop();
+        }
+    } else {
+        alert("마이크를 켜주세요");
         stt.value = "off";
         const new_span = document.createElement('span');
         new_span.setAttribute("class", "material-icons");
