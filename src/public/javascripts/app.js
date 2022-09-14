@@ -1090,8 +1090,9 @@ function onResults(results) {
            console.log(merge_sentence);
            myDataChannel.send(merge_sentence);
            const li = document.createElement("li");
-           li.innerText = "myID : " + merge_sentence;
+           li.innerText = nickname + " : " + merge_sentence;
            messageList.append(li);
+           myDataChannel.send(nickname + " : " + merge_sentence);
         }
 
         if (preWord != word){
