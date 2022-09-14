@@ -667,7 +667,7 @@ socket.on("offer", async (offer) => {
         });
     });
     myPeerConnection.setRemoteDescription(offer);
-    const answer = await myPeerConnection.createAnswer();
+    const answer = myPeerConnection.createAnswer();
     myPeerConnection.setLocalDescription(answer);
     socket.emit("answer", answer, roomName);
     console.log("send answer");
