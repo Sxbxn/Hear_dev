@@ -5,28 +5,545 @@
 
 const socket = io();
 
-//변수
 const messageList = document.querySelector("ul");
-const messageForm = document.querySelector("form");
+const messageForm = document.querySelector(".chat_form");
+const roominfo = document.querySelector(".join_code");
+const videoCam = document.querySelector("#video_cam");
+const canvasElement = document.querySelector('#output_canvas');
 
-const videoCam = document.querySelector(".video_cam");
 const peersCam = document.querySelector("#peers_cam");
 const screen = document.getElementById("screen_sharing");
-
 const audio = document.querySelector("#mic");
-const camElement = document.getElementsByClassName("video_cam")[0];
-const canvasElement = document.getElementsByClassName('output_canvas')[0];
-canvasElement.style.display = 'none';
-const canvasCtx = canvasElement.getContext('2d');
-const camerasSelect = document.getElementById("cameras");
-const audiosSelect = document.getElementById("audios");
+//const camerasSelect = document.getElementById("cameras");
+//const audiosSelect = document.getElementById("audios");
 
+// const camElement = document.getElementsByClassName("video_cam")[0];
+// const canvasElement = document.getElementsByClassName('output_canvas')[0];
+const canvasCtx = canvasElement.getContext('2d');
+let consonant_vowel = {
+    0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h',
+    8: 'i', 9: 'j', 10: 'k', 11: 'l', 12: 'm', 13: 'n', 14: 'o',
+    15: 'p', 16: 'q', 17: 'r', 18: 's', 19: 't', 20: 'u', 21: 'v',
+    22: 'w', 23: 'x', 24: 'y', 25: 'z', 26: 'spacing', 27: 'clear',
+    28: 'ㄱ', 29: 'ㄴ', 30: 'ㄷ', 31: 'ㄹ', 32: 'ㅁ', 33: 'ㅂ', 34: 'ㅅ', 35: 'ㅇ',
+    36: 'ㅈ', 37: 'ㅊ', 38: 'ㅋ', 39: 'ㅌ', 40: 'ㅍ', 41: 'ㅎ', 42: '된소리',
+    43: 'ㅏ', 44: 'ㅑ', 45: 'ㅓ', 46: 'ㅕ', 47: 'ㅗ', 48: 'ㅛ', 49: 'ㅜ',
+    50: 'ㅠ', 51: 'ㅡ', 52: 'ㅣ', 53: 'ㅐ', 54: 'ㅔ', 55: 'ㅚ', 56: 'ㅟ',
+    57: 'ㅚ', 58: 'ㅒ', 59: 'ㅖ', 60: 'ㅢ'
+};
+
+let consonant_vowel_list = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ',
+                            'ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','된소리','ㅏ',
+                            'ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ',
+                            'ㅣ','ㅐ','ㅔ','ㅚ','ㅟ','ㅚ','ㅒ','ㅢ',];
+
+
+let sentence = "";
+let preWord = "";
+let merge_sentence = "";
 
 let myStream;
 let displayStream;
-let roomName = "abcd-123";
 let myPeerConnection;
 let myDataChannel;
+let count = 0;
+let recognition;
+
+const infoString = localStorage.getItem('info');
+const info = JSON.parse(infoString);
+const nickname = info.nickname;
+const roomName = info.roomName;
+roominfo.innerText = roomName;
+localStorage.clear();
+
+
+const hands = new Hands({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+}});
+
+const camera = new Camera(videoCam, {
+        onFrame: async () => {
+        await hands.send({image: videoCam});
+    },
+        width: 782,
+        height: 795
+});
+
+
+function squaredEuclidean(p, q) {
+    let d = 0;
+    for (let i = 0; i < p.length; i++) {
+        d += (p[i] - q[i]) * (p[i] - q[i]);
+    }
+    return d;
+}
+function euclideanDistance(p, q) {
+    return Math.sqrt(squaredEuclidean(p, q));
+}
+
+class KNN {
+  /**
+   * @param {Array} dataset
+   * @param {Array} labels
+   * @param {object} options
+   * @param {number} [options.k=numberOfClasses + 1] - Number of neighbors to classify.
+   * @param {function} [options.distance=euclideanDistance] - Distance function that takes two parameters.
+   */
+  constructor(dataset, labels, options = {}) {
+    if (dataset === true) {
+      const model = labels;
+      this.kdTree = new KDTree(model.kdTree, options);
+      this.k = model.k;
+      this.classes = new Set(model.classes);
+      this.isEuclidean = model.isEuclidean;
+      return;
+    }
+
+    const classes = new Set(labels);
+
+    const { distance = euclideanDistance, k = classes.size + 1 } = options;
+
+    const points = new Array(dataset.length);
+    for (let i = 0; i < points.length; ++i) {
+      points[i] = dataset[i].slice();
+    }
+
+    for (let i = 0; i < labels.length; ++i) {
+      points[i].push(labels[i]);
+    }
+
+    this.kdTree = new KDTree(points, distance);
+    this.k = k;
+    this.classes = classes;
+    this.isEuclidean = distance === euclideanDistance;
+  }
+
+  /**
+   * Create a new KNN instance with the given model.
+   * @param {object} model
+   * @param {function} distance=euclideanDistance - distance function must be provided if the model wasn't trained with euclidean distance.
+   * @return {KNN}
+   */
+  static load(model, distance = euclideanDistance) {
+    if (model.name !== 'KNN') {
+      throw new Error(`invalid model: ${model.name}`);
+    }
+    if (!model.isEuclidean && distance === euclideanDistance) {
+      throw new Error(
+        'a custom distance function was used to create the model. Please provide it again',
+      );
+    }
+    if (model.isEuclidean && distance !== euclideanDistance) {
+      throw new Error(
+        'the model was created with the default distance function. Do not load it with another one',
+      );
+    }
+    return new KNN(true, model, distance);
+  }
+
+  /**
+   * Return a JSON containing the kd-tree model.
+   * @return {object} JSON KNN model.
+   */
+  toJSON() {
+    return {
+      name: 'KNN',
+      kdTree: this.kdTree,
+      k: this.k,
+      classes: Array.from(this.classes),
+      isEuclidean: this.isEuclidean,
+    };
+  }
+
+  /**
+   * Predicts the output given the matrix to predict.
+   * @param {Array} dataset
+   * @return {Array} predictions
+   */
+  predict(dataset) {
+    if (Array.isArray(dataset)) {
+      if (typeof dataset[0] === 'number') {
+        return getSinglePrediction(this, dataset);
+      } else if (
+        Array.isArray(dataset[0]) &&
+        typeof dataset[0][0] === 'number'
+      ) {
+        const predictions = new Array(dataset.length);
+        for (let i = 0; i < dataset.length; i++) {
+          predictions[i] = getSinglePrediction(this, dataset[i]);
+        }
+        return predictions;
+      }
+    }
+    throw new TypeError('dataset to predict must be an array or a matrix');
+  }
+}
+
+function getSinglePrediction(knn, currentCase) {
+  let nearestPoints = knn.kdTree.nearest(currentCase, knn.k);
+  let pointsPerClass = {};
+  let predictedClass = -1;
+  let maxPoints = -1;
+  let lastElement = nearestPoints[0][0].length - 1;
+
+  for (let element of knn.classes) {
+    pointsPerClass[element] = 0;
+  }
+
+  for (let i = 0; i < nearestPoints.length; ++i) {
+    let currentClass = nearestPoints[i][0][lastElement];
+    let currentPoints = ++pointsPerClass[currentClass];
+    if (currentPoints > maxPoints) {
+      predictedClass = currentClass;
+      maxPoints = currentPoints;
+    }
+  }
+
+  return predictedClass;
+}
+
+/*
+ * Original code from:
+ *
+ * k-d Tree JavaScript - V 1.01
+ *
+ * https://github.com/ubilabs/kd-tree-javascript
+ *
+ * @author Mircea Pricop <pricop@ubilabs.net>, 2012
+ * @author Martin Kleppe <kleppe@ubilabs.net>, 2012
+ * @author Ubilabs http://ubilabs.net, 2012
+ * @license MIT License <http://www.opensource.org/licenses/mit-license.php>
+ */
+
+class Node {
+  constructor(obj, dimension, parent) {
+    this.obj = obj;
+    this.left = null;
+    this.right = null;
+    this.parent = parent;
+    this.dimension = dimension;
+  }
+}
+
+class KDTree {
+  constructor(points, metric) {
+    // If points is not an array, assume we're loading a pre-built tree
+    if (!Array.isArray(points)) {
+      this.dimensions = points.dimensions;
+      this.root = points;
+      restoreParent(this.root);
+    } else {
+      this.dimensions = new Array(points[0].length);
+      for (let i = 0; i < this.dimensions.length; i++) {
+        this.dimensions[i] = i;
+      }
+      this.root = buildTree(points, 0, null, this.dimensions);
+    }
+    this.metric = metric;
+  }
+
+  // Convert to a JSON serializable structure; this just requires removing
+  // the `parent` property
+  toJSON() {
+    const result = toJSONImpl(this.root, true);
+    result.dimensions = this.dimensions;
+    return result;
+  }
+
+  nearest(point, maxNodes, maxDistance) {
+    const metric = this.metric;
+    const dimensions = this.dimensions;
+    let i;
+
+    const bestNodes = new BinaryHeap((e) => -e[1]);
+
+    function nearestSearch(node) {
+      const dimension = dimensions[node.dimension];
+      const ownDistance = metric(point, node.obj);
+      const linearPoint = {};
+      let bestChild, linearDistance, otherChild, i;
+
+      function saveNode(node, distance) {
+        bestNodes.push([node, distance]);
+        if (bestNodes.size() > maxNodes) {
+          bestNodes.pop();
+        }
+      }
+
+      for (i = 0; i < dimensions.length; i += 1) {
+        if (i === node.dimension) {
+          linearPoint[dimensions[i]] = point[dimensions[i]];
+        } else {
+          linearPoint[dimensions[i]] = node.obj[dimensions[i]];
+        }
+      }
+
+      linearDistance = metric(linearPoint, node.obj);
+
+      if (node.right === null && node.left === null) {
+        if (bestNodes.size() < maxNodes || ownDistance < bestNodes.peek()[1]) {
+          saveNode(node, ownDistance);
+        }
+        return;
+      }
+
+      if (node.right === null) {
+        bestChild = node.left;
+      } else if (node.left === null) {
+        bestChild = node.right;
+      } else {
+        if (point[dimension] < node.obj[dimension]) {
+          bestChild = node.left;
+        } else {
+          bestChild = node.right;
+        }
+      }
+
+      nearestSearch(bestChild);
+
+      if (bestNodes.size() < maxNodes || ownDistance < bestNodes.peek()[1]) {
+        saveNode(node, ownDistance);
+      }
+
+      if (
+        bestNodes.size() < maxNodes ||
+        Math.abs(linearDistance) < bestNodes.peek()[1]
+      ) {
+        if (bestChild === node.left) {
+          otherChild = node.right;
+        } else {
+          otherChild = node.left;
+        }
+        if (otherChild !== null) {
+          nearestSearch(otherChild);
+        }
+      }
+    }
+
+    if (maxDistance) {
+      for (i = 0; i < maxNodes; i += 1) {
+        bestNodes.push([null, maxDistance]);
+      }
+    }
+
+    if (this.root) {
+      nearestSearch(this.root);
+    }
+
+    const result = [];
+    for (i = 0; i < Math.min(maxNodes, bestNodes.content.length); i += 1) {
+      if (bestNodes.content[i][0]) {
+        result.push([bestNodes.content[i][0].obj, bestNodes.content[i][1]]);
+      }
+    }
+    return result;
+  }
+}
+
+function toJSONImpl(src) {
+  const dest = new Node(src.obj, src.dimension, null);
+  if (src.left) dest.left = toJSONImpl(src.left);
+  if (src.right) dest.right = toJSONImpl(src.right);
+  return dest;
+}
+
+function buildTree(points, depth, parent, dimensions) {
+  const dim = depth % dimensions.length;
+
+  if (points.length === 0) {
+    return null;
+  }
+  if (points.length === 1) {
+    return new Node(points[0], dim, parent);
+  }
+
+  points.sort((a, b) => a[dimensions[dim]] - b[dimensions[dim]]);
+
+  const median = Math.floor(points.length / 2);
+  const node = new Node(points[median], dim, parent);
+  node.left = buildTree(points.slice(0, median), depth + 1, node, dimensions);
+  node.right = buildTree(points.slice(median + 1), depth + 1, node, dimensions);
+
+  return node;
+}
+
+function restoreParent(root) {
+  if (root.left) {
+    root.left.parent = root;
+    restoreParent(root.left);
+  }
+
+  if (root.right) {
+    root.right.parent = root;
+    restoreParent(root.right);
+  }
+}
+
+// Binary heap implementation from:
+// http://eloquentjavascript.net/appendix2.html
+class BinaryHeap {
+  constructor(scoreFunction) {
+    this.content = [];
+    this.scoreFunction = scoreFunction;
+  }
+
+  push(element) {
+    // Add the new element to the end of the array.
+    this.content.push(element);
+    // Allow it to bubble up.
+    this.bubbleUp(this.content.length - 1);
+  }
+
+  pop() {
+    // Store the first element so we can return it later.
+    let result = this.content[0];
+    // Get the element at the end of the array.
+    let end = this.content.pop();
+    // If there are any elements left, put the end element at the
+    // start, and let it sink down.
+    if (this.content.length > 0) {
+      this.content[0] = end;
+      this.sinkDown(0);
+    }
+    return result;
+  }
+
+  peek() {
+    return this.content[0];
+  }
+
+  size() {
+    return this.content.length;
+  }
+
+  bubbleUp(n) {
+    // Fetch the element that has to be moved.
+    let element = this.content[n];
+    // When at 0, an element can not go up any further.
+    while (n > 0) {
+      // Compute the parent element's index, and fetch it.
+      const parentN = Math.floor((n + 1) / 2) - 1;
+      const parent = this.content[parentN];
+      // Swap the elements if the parent is greater.
+      if (this.scoreFunction(element) < this.scoreFunction(parent)) {
+        this.content[parentN] = element;
+        this.content[n] = parent;
+        // Update 'n' to continue at the new position.
+        n = parentN;
+      } else {
+        // Found a parent that is less, no need to move it further.
+        break;
+      }
+    }
+  }
+
+  sinkDown(n) {
+    // Look up the target element and its score.
+    const length = this.content.length;
+    const element = this.content[n];
+    const elemScore = this.scoreFunction(element);
+
+    while (true) {
+      let child1Score;
+      // Compute the indices of the child elements.
+      const child2N = (n + 1) * 2;
+      const child1N = child2N - 1;
+      // This is used to store the new position of the element,
+      // if any.
+      let swap = null;
+      // If the first child exists (is inside the array)...
+      if (child1N < length) {
+        // Look it up and compute its score.
+        const child1 = this.content[child1N];
+        child1Score = this.scoreFunction(child1);
+        // If the score is less than our element's, we need to swap.
+        if (child1Score < elemScore) {
+          swap = child1N;
+        }
+      }
+      // Do the same checks for the other child.
+      if (child2N < length) {
+        const child2 = this.content[child2N];
+        const child2Score = this.scoreFunction(child2);
+        if (child2Score < (swap === null ? elemScore : child1Score)) {
+          swap = child2N;
+        }
+      }
+
+      // If the element needs to be moved, swap it, and continue.
+      if (swap !== null) {
+        this.content[n] = this.content[swap];
+        this.content[swap] = element;
+        n = swap;
+      } else {
+        // Otherwise, we are done.
+        break;
+      }
+    }
+  }
+}
+
+let content = null;
+let xmlhttp = new XMLHttpRequest();
+xmlhttp.open("GET", "/public/raw/dataSet.txt", false);
+xmlhttp.send();
+//파일 로드 성공 시 파일에서 읽은 텍스트를 content에 담음
+if (xmlhttp.status == 200) {
+    content = xmlhttp.responseText;
+}
+var file_vector = content.split("\r\n");
+
+var angle_list = [];
+var label_list = [];
+
+for (const data of file_vector){
+   angle_list.push(data.split(',').slice(undefined, 15));
+   label_list.push(data.split(',').slice(15)[0]);
+}
+
+const knn = new KNN(angle_list, label_list, {k: 3});
+console.log(knn);
+/*
+//장치 선택 (camera)
+async function getCameras() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter((device) => device.kind === "videoinput");
+        const currentCamera = myStream.getVideoTracks()[0];
+        cameras.forEach(camera => {
+            const option = document.createElement("option");
+            option.value = camera.deviceId;
+            option.innerText = camera.label;
+            if (currentCamera.label == camera.label) {
+                option.selected = true;
+            }
+            camerasSelect.appendChild(option);
+        })
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+// 장치 선택 (audio)
+async function getAudios() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audios = devices.filter((device) => device.kind === "audioinput");
+        const currentAudio = myStream.getAudioTracks()[0];
+        audios.forEach(audio => {
+            const option = document.createElement("option");
+            option.value = audio.deviceId;
+            option.innerText = audio.label;
+            if (currentAudio.label == audio.label) {
+                option.selected = true;
+            }
+            audiosSelect.appendChild(option);
+        })
+    } catch (e) {
+        console.log(e);
+    }
+}
+*/
 
 // KNN을 위한 BUILD UP CODE
 
@@ -471,7 +988,7 @@ const knn = new KNN(angle_list, label_list, {k: 3});
 // 장치 가져오기 (defult = audio 기본, video = 셀캠)
 async function getMedia(deviceId, kind) {
     let audioConstraints = true;
-    let cameraConstraints = { facingMode: "user" };
+    let cameraConstraints = { facingMode: 'user' };
     if (deviceId) {
         if (kind === 'audio') {
             audioConstraints = { deviceId: { exact: deviceId } };
@@ -496,59 +1013,36 @@ async function getMedia(deviceId, kind) {
         console.log(e);
     }
 }
-
-async function initCall() {
-    await getMedia();
-    makeConnection();
-    socket.emit("join_room", "abcd-123");
+/* 장치 설정 부분
+// 캠 변경
+async function handleCameraChange() {
+    await getMedia(camerasSelect.value, 'camera');
+    if (myPeerConnection) {
+        const videoTrack = myStream.getVideoTracks()[0];
+        const videoSender = myPeerConnection
+            .getSenders()
+            .find(sender => sender.track.kind === "video");
+        videoSender.replaceTrack(videoTrack);
+    }
 }
 
-// 페이지 들어옴 !
-initCall();
+// 오디오 변경
+async function handleAudioChange() {
+    await getMedia(audiosSelect.value, 'audio');
+    if (myPeerConnection) {
+        const audioTrack = myStream.getAudioTracks()[0];
+        const audioSender = myPeerConnection
+            .getSenders()
+            .find(sender => sender.track.kind === "audio");
+        audioSender.replaceTrack(audioTrack);
+    }
+}
 
-//
 
-// Socket Code
-socket.on("welcome", async () => {
-    myDataChannel = myPeerConnection.createDataChannel("chat");
-    messageForm.addEventListener("submit", handleSubmit);
-    myDataChannel.addEventListener("message", (event) => {
-        const li = document.createElement("li");
-        li.innerText = "yourID : " + event.data;
-        messageList.append(li);
-    });
-    const offer = await myPeerConnection.createOffer();
-    myPeerConnection.setLocalDescription(offer);
-    socket.emit("offer", offer, roomName);
-    console.log("send offer");
-});
-
-socket.on("offer", async (offer) => {
-    console.log("recive offer");
-    myPeerConnection.addEventListener("datachannel", (event) => {
-        myDataChannel = event.channel;
-        messageForm.addEventListener("submit", handleSubmit);
-        myDataChannel.addEventListener("message", (event) => {
-            const li = document.createElement("li");
-            li.innerText = "yourID : " + event.data;
-            messageList.append(li);
-        });
-    });
-    myPeerConnection.setRemoteDescription(offer);
-    const answer = await myPeerConnection.createAnswer();
-    myPeerConnection.setLocalDescription(answer);
-    socket.emit("answer", answer, roomName);
-    console.log("send answer");
-});
-
-socket.on("answer", answer => {
-    console.log("recive answer");
-    myPeerConnection.setRemoteDescription(answer);
-});
-
-socket.on("ice", ice => {
-    myPeerConnection.addIceCandidate(ice);
-});
+// 장치 변경
+camerasSelect.addEventListener("input", handleCameraChange);
+audiosSelect.addEventListener("input", handleAudioChange);
+*/
 
 // RTC Code
 const peerConnectionConfig = {
@@ -576,15 +1070,90 @@ function handleAddStream(data) {
     peersCam.srcObject = data.stream;
 }
 
+function startSTT() {
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    if (!recognition) {
+        alert("no stt");
+    }
+    recognition.interimResults = true;
+    recognition.lang = "ko-KR";
+    recognition.continuous = true;
+    recognition.maxAlternatives = 5000;
+
+    recognition.addEventListener('result', (event) => {
+        const transcript = event.results[event.resultIndex][0].transcript;
+
+        if (event.results[event.resultIndex].isFinal) {
+            myDataChannel.send(nickname+" : " + transcript);
+            const li = document.createElement("li");
+            li.innerText = nickname+" : " + transcript;
+            messageList.append(li);
+        }
+    });
+}
+
+async function initCall() {
+    await getMedia();
+    makeConnection();
+    startSTT();
+    socket.emit("join_room", roomName);
+}
+
+initCall();
+
+// Socket Code
+socket.on("welcome", async () => {
+    myDataChannel = myPeerConnection.createDataChannel("chat");
+    messageForm.addEventListener("submit", handleSubmit);
+    myDataChannel.addEventListener("message", (event) => {
+        const li = document.createElement("li");
+        li.innerText = event.data;
+        messageList.append(li);
+    });
+    const offer = await myPeerConnection.createOffer();
+    myPeerConnection.setLocalDescription(offer);
+    socket.emit("offer", offer, roomName);
+    console.log("send offer");
+});
+
+socket.on("offer", async (offer) => {
+    console.log("recive offer");
+    myPeerConnection.addEventListener("datachannel", (event) => {
+        myDataChannel = event.channel;
+        messageForm.addEventListener("submit", handleSubmit);
+        myDataChannel.addEventListener("message", (event) => {
+            const li = document.createElement("li");
+            li.innerText = event.data;
+            messageList.append(li);
+        });
+    });
+    myPeerConnection.setRemoteDescription(offer);
+    const answer = await myPeerConnection.createAnswer();
+    myPeerConnection.setLocalDescription(answer);
+    socket.emit("answer", answer, roomName);
+    console.log("send answer");
+});
+
+socket.on("answer", answer => {
+    console.log("recive answer");
+    myPeerConnection.setRemoteDescription(answer);
+});
+
+socket.on("ice", ice => {
+    myPeerConnection.addIceCandidate(ice);
+});
+
 function handleSubmit(event) {
     event.preventDefault();
     const input = messageForm.querySelector("input");
-    myDataChannel.send(input.value);
+    myDataChannel.send(nickname+" : " + input.value);
     const li = document.createElement("li");
-    li.innerText = "myID : " + input.value;
+    li.innerText = nickname+" : " + input.value;
     messageList.append(li);
     input.value = "";
 }
+
 
 // 각 화면 확대·축소 클릭 이벤트
 videoCam.addEventListener('click', function () {
@@ -618,6 +1187,17 @@ screen.addEventListener('click', function () {
         minScreen(screen);
     }
 });
+canvasElement.addEventListener('click', function () {
+  if (canvasElement.getAttribute('class') == "min") {
+    canvasElement.setAttribute('class', 'max');
+      maxScreen(canvasElement);
+  }
+  else {
+    canvasElement.setAttribute('class', 'min');
+      minScreen(canvasElement);
+  }
+  
+});
 
 // 화면 확대
 function maxScreen(clickVideo) {
@@ -627,12 +1207,42 @@ function maxScreen(clickVideo) {
     const cam = document.querySelector(".cam");
 
     let childCam = cam.childNodes;
+    let checkingCanvas = 0;
+
+    for(var i = 0; i < childCam.length; i++) {
+      let childTag = childCam[i];
+      if (childTag.nodeName == "CANVAS") {
+        if (childTag.style.display = 'none') {
+          checkingCanvas = 0;
+        }
+        else {
+          checkingCanvas = 1;
+        }
+      }
+    }
+
     for(var i = 0; i < childCam.length; i++) {
         let childTag = childCam[i];
 
-        if (childTag.nodeName == "VIDEO") {
+        if (checkingCanvas == 0) {
+          if (childTag.nodeName == "VIDEO") {
             childTag.style.display = 'none';
+          }  
+          // if (childTag.nodeName == "CANVAS") {
+          //   childTag.style.display = 'none';
+          // }
+        } else {
+            canvasElement.style.display = 'none';
+            if (childTag.nodeName == "VIDEO") {
+              childTag.style.display = 'none';
+            }
+  
+            if (childTag.nodeName == "CANVAS") {
+              childTag.style.display = 'none';
+            }
         }
+
+        
     }
     let fullCam = document.getElementById(`${cv}`);
     fullCam.style.display = '';
@@ -651,11 +1261,42 @@ function minScreen(clickVideo) {
     const cam = document.querySelector(".cam");
 
     let childCam = cam.childNodes;
+    let checkingCanvas = 0;
+
+    for(var i = 0; i < childCam.length; i++) {
+      let childTag = childCam[i];
+      if (childTag.nodeName == "CANVAS") {
+        if (childTag.style.display = 'none') {
+          checkingCanvas = 0;
+        }
+        else {
+          checkingCanvas = 1;
+        }
+      }
+    }
+    // console.log(checkingCanvas);
+
     for(var i = 0; i < childCam.length; i++) {
         let childTag = childCam[i];
-
+        
         if (childTag.nodeName == "VIDEO") {
+          if (childTag.id == 'video_cam') {
+            if (checkingCanvas == 0) {
+              childTag.style.display = '';
+            } else {
+              childTag.style.display = 'none';
+            }
+            
+          }
+          else {
             childTag.style.display = '';
+          }
+        }
+
+        if (childTag.nodeName == "CANVAS") {
+          if (childTag.style.display != 'inline') {
+            childTag.style.display = 'none';
+          }
         }
     }
     let beforeCam = document.getElementById(`${cv}`);
@@ -681,6 +1322,7 @@ function presentOnOff() {
         const new_text = document.createTextNode('present_to_all');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
+        // document.getElementsByClassName("video_cam").style.display = 'none';
         // document.getElementById("third").style.display = 'none';
         // document.getElementById("screen_sharing").style.display = '';
         sharingStart();
@@ -693,6 +1335,7 @@ function presentOnOff() {
         const new_text = document.createTextNode('cancel_presentation');
         new_span.appendChild(new_text);
         present.appendChild(new_span);
+        // document.getElementsByClassName("video_cam").style.display = '';
         // document.getElementById("third").style.display = '';
         // document.getElementById("screen_sharing").style.display = 'none';
         sharingStop();
@@ -735,6 +1378,7 @@ function sharingStop() {
 // 마이크 on, off
 function micOnOff() {
     var mic = document.querySelector("#mic");
+    var stt = document.querySelector("#stt");
     while (mic.hasChildNodes()) {	// 부모노드에 자식 노드가 있으면,
         mic.removeChild(mic.firstChild);
     }
@@ -756,6 +1400,18 @@ function micOnOff() {
         const new_text = document.createTextNode('mic_off');
         new_span.appendChild(new_text);
         mic.appendChild(new_span);
+        if (stt.value === "on") {
+            while (stt.hasChildNodes()) {
+                stt.removeChild(stt.firstChild);
+            }
+            stt.value = "off";
+            const new_span = document.createElement('span');
+            new_span.setAttribute("class", "material-icons");
+            const new_text = document.createTextNode('speaker_notes_off');
+            new_span.appendChild(new_text);
+            stt.appendChild(new_span);
+            recognition.stop();
+        }
     }
     myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
 }
@@ -788,37 +1444,8 @@ function videoOnOff() {
     myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
 }
 
-// stt 버튼 on, off
-function sttOnOff() {
-    var stt = document.querySelector("#stt");
-    while (stt.hasChildNodes()) {
-        stt.removeChild(stt.firstChild);
-    }
-    // off 상태이면,
-    if (stt.value === "off") {
-        stt.value = "on";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        new_span.setAttribute("value", "on");
-        const new_text = document.createTextNode('speaker_notes');
-        new_span.appendChild(new_text);
-        stt.appendChild(new_span);
-    }
-    // on 상태이면,
-    else {
-        stt.value = "off";
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        const new_text = document.createTextNode('speaker_notes_off');
-        new_span.appendChild(new_text);
-        stt.appendChild(new_span);
-    }
-}
-
-// 손 인식을 통해 추출한 좌표를 이용하여 모션 비교하는 메소드
-
+// 수화 인식 결과 메서드
 function onResults(results) {
-  canvasElement.style.display = 'inline';
   canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   canvasCtx.drawImage(
@@ -827,8 +1454,8 @@ function onResults(results) {
     var i = 0
     for (const landmarks of results.multiHandLandmarks) {
         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
-                      {color: '#00FF00', lineWidth: 5});
-        drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+                      {color: '#00FF00', lineWidth: 2});
+        drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
 
         const v = [[landmarks[1]['x'] - landmarks[0]['x'], landmarks[1]['y'] - landmarks[0]['y'], landmarks[1]['z'] - landmarks[0]['z']],
                    [landmarks[2]['x'] - landmarks[1]['x'], landmarks[2]['y'] - landmarks[1]['y'], landmarks[2]['z'] - landmarks[1]['z']],
@@ -879,67 +1506,125 @@ function onResults(results) {
         var angle = [];
 
         for (let i = 0; i < v_inner.length; i++){
-            angle.push(Math.acos(v_inner[i]));
+            angle.push(Math.acos(v_inner[i]) * (180 / Math.PI));
+        }
+        var ans = knn.predict(angle);
+        word = consonant_vowel[parseInt(ans)];
+
+        if (preWord == ""){
+            preWord = word;
         }
 
-        var ans = knn.predict(angle);
-        console.log(ans);
+        if (preWord == word){
+           count++;
+        }
 
+        if (count >= 10 && word == 'clear'){
+           sentence = "";
+        }
+
+        if (count >= 10){
+           sentence += word;
+           preWord = word;
+           count = 0;
+           var merge_sentence = Hangul.assemble(sentence);
+           console.log(merge_sentence);
+           myDataChannel.send(merge_sentence);
+           const li = document.createElement("li");
+           li.innerText = nickname + " : " + merge_sentence;
+           messageList.append(li);
+           myDataChannel.send(nickname + " : " + merge_sentence);
+        }
+
+        if (preWord != word){
+            preWord = word;
+        }
     }
   }
   canvasCtx.restore();
 }
 
-// 수화 인식 버튼 on, off
+// 수화 인식 on, off
+canvasElement.style.display = 'none';
+
 function slOnOff() {
-    var sl = document.querySelector("#sign_language");
-    while (sl.hasChildNodes()) {
-        sl.removeChild(sl.firstChild);
+  var sl = document.querySelector("#sign_language");
+  while (sl.hasChildNodes()) {
+    sl.removeChild(sl.firstChild);
+  }
+  // off 상태이면,
+  if (sl.value === "off") {
+    canvasElement.style.display = 'inline';
+    sl.value = "on";
+    const new_span = document.createElement('span');
+    new_span.setAttribute("class", "material-icons");
+    new_span.setAttribute("value", "on");
+    const new_text = document.createTextNode('sign_language');
+    new_span.appendChild(new_text);
+    sl.appendChild(new_span);
+
+    videoCam.style.display = 'none';
+
+    hands.setOptions({
+        maxNumHands: 2,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+        modelComplexity: 1
+    });
+    hands.onResults(onResults);
+    camera.start();
+  }
+  // on 상태이면,
+  else {
+    canvasElement.style.display = 'none';
+    console.log("in");
+    camera.stop();
+    sl.value = "off";
+    videoCam.style.display = '';
+    const new_span = document.createElement('span');
+    new_span.setAttribute("class", "material-icons");
+    const new_text = document.createTextNode('do_not_touch');
+    new_span.appendChild(new_text);
+    sl.appendChild(new_span);
+  }
+}
+
+// stt 버튼 on, off
+function sttOnOff() {
+    var stt = document.querySelector("#stt");
+    while (stt.hasChildNodes()) {
+        stt.removeChild(stt.firstChild);
     }
-    // off 상태이면,
-    if (sl.value === "off") {
-        sl.value = "on";
+    if (mic.value === "on") {
+        // off 상태이면,
+        if (stt.value === "off") {
+            stt.value = "on";
+            const new_span = document.createElement('span');
+            new_span.setAttribute("class", "material-icons");
+            new_span.setAttribute("value", "on");
+            const new_text = document.createTextNode('speaker_notes');
+            new_span.appendChild(new_text);
+            stt.appendChild(new_span);
+            recognition.start();
+        }
+        // on 상태이면,
+        else {
+            stt.value = "off";
+            const new_span = document.createElement('span');
+            new_span.setAttribute("class", "material-icons");
+            const new_text = document.createTextNode('speaker_notes_off');
+            new_span.appendChild(new_text);
+            stt.appendChild(new_span);
+            recognition.stop();
+        }
+    } else {
+        alert("마이크를 켜주세요");
+        stt.value = "off";
         const new_span = document.createElement('span');
         new_span.setAttribute("class", "material-icons");
-        new_span.setAttribute("value", "on");
-        const new_text = document.createTextNode('sign_language');
+        const new_text = document.createTextNode('speaker_notes_off');
         new_span.appendChild(new_text);
-        sl.appendChild(new_span);
-
-        camElement.style.display = 'none';
-
-        const hands = new Hands({locateFile: (file) => {
-            console.log(file);
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }});
-
-        hands.setOptions({
-            maxNumHands: 2,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-            modelComplexity: 1
-        });
-        hands.onResults(onResults);
-
-        const camera = new Camera(camElement, {
-            onFrame: async () => {
-            await hands.send({image: camElement});
-        },
-            width: 782,
-            height: 795
-        });
-        camera.start();
-    }
-    // on 상태이면,
-    else {
-        sl.value = "off";
-        camElement.style.display = 'inline';
-        canvasElement.style.display = 'none';
-        const new_span = document.createElement('span');
-        new_span.setAttribute("class", "material-icons");
-        const new_text = document.createTextNode('do_not_touch');
-        new_span.appendChild(new_text);
-        sl.appendChild(new_span);
+        stt.appendChild(new_span);
     }
 }
 

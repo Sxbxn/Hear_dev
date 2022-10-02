@@ -17,7 +17,19 @@ app.get("/*", (_, res) => res.redirect("/"));
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
+function checkRoom(roomName) {
+    let count = wsServer.sockets.adapter.rooms.get(roomName)?.size;
+    if (count == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 wsServer.on("connection", socket => {
+    socket.on("enter_code", (roomName) => {
+        socket.emit("enter_code", checkRoom(roomName));
+    });
     socket.on("join_room", (roomName) => {
         socket.join(roomName);
         socket.to(roomName).emit("welcome");
